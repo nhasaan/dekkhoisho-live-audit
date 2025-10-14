@@ -1,0 +1,113 @@
+// Prisma schema for Bitsmedia Live Audit System
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  viewer
+  analyst
+  admin
+}
+
+enum RuleStatus {
+  draft
+  active
+  paused
+}
+
+enum EventSeverity {
+  low
+  medium
+  high
+  critical
+}
+
+enum EventAction {
+  allowed
+  blocked
+}
+
+model User {
+  id           Int         @id @default(autoincrement())
+  username     String      @unique @db.VarChar(50)
+  passwordHash String      @map("password_hash") @db.VarChar(255)
+  role         UserRole
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  
+  // Relations
+  auditLogs    AuditLog[]
+  createdRules Rule[]      @relation("CreatedRules")
+
+  @@map("users")
+}
+
+model AuditLog {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @map("user_id")
+  username     String   @db.VarChar(50)
+  action       String   @db.VarChar(50)
+  target       String?  @db.VarChar(255)
+  metadata     Json?
+  timestamp    DateTime @default(now())
+  hash         String   @db.VarChar(64)
+  previousHash String?  @map("previous_hash") @db.VarChar(64)
+  createdAt    DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  user         User     @relation(fields: [userId], references: [id])
+
+  @@index([username])
+  @@index([action])
+  @@index([timestamp])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model Event {
+  id         String        @id @db.VarChar(50)
+  ts         DateTime
+  sourceIp   String        @map("source_ip") @db.VarChar(45)
+  path       String?       @db.VarChar(255)
+  method     String?       @db.VarChar(10)
+  service    String?       @db.VarChar(100)
+  ruleId     String        @map("rule_id") @db.VarChar(50)
+  ruleName   String        @map("rule_name") @db.VarChar(255)
+  severity   EventSeverity
+  action     EventAction
+  latencyMs  Int           @map("latency_ms")
+  country    String        @db.VarChar(2)
+  env        String        @db.VarChar(20)
+  createdAt  DateTime      @default(now()) @map("created_at")
+
+  @@index([ts])
+  @@index([ruleId])
+  @@index([severity])
+  @@index([createdAt])
+  @@map("events")
+}
+
+model Rule {
+  id          Int        @id @default(autoincrement())
+  name        String     @db.VarChar(255)
+  description String?    @db.Text
+  pattern     String?    @db.Text
+  severity    EventSeverity
+  status      RuleStatus @default(draft)
+  createdBy   Int        @map("created_by")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  
+  // Relations
+  creator     User       @relation("CreatedRules", fields: [createdBy], references: [id])
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("rules")
+}
