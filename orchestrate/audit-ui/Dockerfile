@@ -11,6 +11,14 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Build args for environment variables
+ARG PUBLIC_API_URL=http://localhost:5001
+ARG PUBLIC_WS_URL=ws://localhost:5001/ws
+
+# Set environment variables for build
+ENV PUBLIC_API_URL=$PUBLIC_API_URL
+ENV PUBLIC_WS_URL=$PUBLIC_WS_URL
+
 # Build Astro app
 RUN npm run build
 
@@ -19,16 +27,14 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files and built app
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/dist ./dist
+# Install serve package globally for serving static files
+RUN npm install -g serve
 
-# Install production dependencies only
-RUN npm ci --only=production
+# Copy built files from builder
+COPY --from=builder /app/dist ./dist
 
 # Expose port
 EXPOSE 4321
 
-# Start Astro preview server
-CMD ["npm", "run", "preview", "--", "--host", "0.0.0.0", "--port", "4321"]
-
+# Serve the static files
+CMD ["serve", "-s", "dist", "-l", "4321"]

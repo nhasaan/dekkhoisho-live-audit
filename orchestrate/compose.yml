@@ -24,6 +24,9 @@ services:
     build:
       context: ../source/audit-ui
       dockerfile: ../../orchestrate/audit-ui/Dockerfile
+      args:
+        PUBLIC_API_URL: http://localhost:5001
+        PUBLIC_WS_URL: ws://localhost:5001/ws
     container_name: audit-ui
     ports:
       - "4321:4321"
