@@ -124,33 +124,30 @@ export class EventsService {
         threshold = new Date(now.getTime() - 15 * 60 * 1000);
     }
 
-    // Get top rules from database
-    const ruleStats = await prisma.event.groupBy({
-      by: ['ruleId', 'ruleName'],
-      where: {
-        ts: {
-          gte: threshold,
-        },
-      },
-      _count: {
-        _all: true,
-      },
-      _max: {
-        ts: true,
-      },
-      orderBy: {
-        _count: {
-          _all: 'desc',
-        },
-      },
-      take: 5,
-    });
+    // Get top rules from database using raw query for better control
+    const ruleStats = await prisma.$queryRaw<Array<{
+      rule_id: string;
+      rule_name: string;
+      count: bigint;
+      last_seen: Date;
+    }>>`
+      SELECT 
+        rule_id,
+        rule_name,
+        COUNT(*)::bigint as count,
+        MAX(ts) as last_seen
+      FROM events
+      WHERE ts >= ${threshold}
+      GROUP BY rule_id, rule_name
+      ORDER BY count DESC
+      LIMIT 5
+    `;
 
     return ruleStats.map((stat): RuleStatsResponse => ({
-      rule_id: stat.ruleId,
-      rule_name: stat.ruleName,
-      count: stat._count._all,
-      last_seen: stat._max.ts?.toISOString() || new Date().toISOString(),
+      rule_id: stat.rule_id,
+      rule_name: stat.rule_name,
+      count: Number(stat.count),
+      last_seen: stat.last_seen.toISOString(),
     }));
   }
 }

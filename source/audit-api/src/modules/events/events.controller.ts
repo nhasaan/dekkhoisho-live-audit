@@ -10,14 +10,11 @@ export class EventsController {
     this.eventsService = new EventsService();
   }
 
-  async ingestEvent(
-    request: FastifyRequest<{ Body: EventIngestRequest }>,
-    reply: FastifyReply
-  ) {
+  async ingestEvent(request: FastifyRequest, reply: FastifyReply) {
     const startTime = Date.now();
 
     try {
-      const event = await this.eventsService.ingestEvent(request.body);
+      const event = await this.eventsService.ingestEvent(request.body as EventIngestRequest);
 
       // Update Redis statistics
       await request.server.redis.incrementRuleCount(event.ruleId, event.ruleName);
@@ -31,7 +28,7 @@ export class EventsController {
               data: request.body, // Send original request format
             }));
           } catch (err) {
-            request.log.error('Failed to broadcast event:', err);
+            request.log.error({ error: err }, 'Failed to broadcast event');
           }
         }
       });
@@ -90,25 +87,21 @@ export class EventsController {
     }
   }
 
-  async getRecentEvents(
-    request: FastifyRequest<{ Querystring: GetEventsQuery }>,
-    reply: FastifyReply
-  ) {
+  async getRecentEvents(request: FastifyRequest, reply: FastifyReply) {
     const startTime = Date.now();
 
     try {
-      const { data, nextCursor, hasMore, totalCount } = await this.eventsService.getRecentEvents(
-        request.query
-      );
+      const query = request.query as GetEventsQuery;
+      const { data, nextCursor, hasMore, totalCount } = await this.eventsService.getRecentEvents(query);
 
       const response = ResponseBuilder.successPaginated(
         'Events retrieved successfully',
         data.map(toEventResponse),
         {
-          cursor: request.query.cursor || null,
+          cursor: query.cursor || null,
           next_cursor: nextCursor,
           has_more: hasMore,
-          limit: request.query.limit || 50,
+          limit: query.limit || 50,
           total_count: totalCount,
         },
         {
@@ -144,14 +137,12 @@ export class EventsController {
     }
   }
 
-  async getRuleStats(
-    request: FastifyRequest<{ Querystring: { window?: '15m' | '1h' | '24h' } }>,
-    reply: FastifyReply
-  ) {
+  async getRuleStats(request: FastifyRequest, reply: FastifyReply) {
     const startTime = Date.now();
 
     try {
-      const window = request.query.window || '15m';
+      const query = request.query as { window?: '15m' | '1h' | '24h' };
+      const window = query.window || '15m';
       const rules = await this.eventsService.getRuleStats(window);
 
       const response = ResponseBuilder.success(

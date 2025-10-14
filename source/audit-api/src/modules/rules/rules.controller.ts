@@ -14,25 +14,21 @@ export class RulesController {
     this.auditService = new AuditService();
   }
 
-  async getRules(
-    request: FastifyRequest<{ Querystring: GetRulesQuery }>,
-    reply: FastifyReply
-  ) {
+  async getRules(request: FastifyRequest, reply: FastifyReply) {
     const startTime = Date.now();
 
     try {
-      const { data, nextCursor, hasMore, totalCount } = await this.rulesService.getRules(
-        request.query
-      );
+      const query = request.query as GetRulesQuery;
+      const { data, nextCursor, hasMore, totalCount } = await this.rulesService.getRules(query);
 
       const response = ResponseBuilder.successPaginated(
         'Rules retrieved successfully',
         data.map(toRuleResponse),
         {
-          cursor: request.query.cursor || null,
+          cursor: query.cursor || null,
           next_cursor: nextCursor,
           has_more: hasMore,
-          limit: request.query.limit || 50,
+          limit: query.limit || 50,
           total_count: totalCount,
         },
         {
@@ -61,15 +57,12 @@ export class RulesController {
     }
   }
 
-  async createDraftRule(
-    request: FastifyRequest<{ Body: CreateRuleRequest }>,
-    reply: FastifyReply
-  ) {
+  async createDraftRule(request: FastifyRequest, reply: FastifyReply) {
     const startTime = Date.now();
 
     try {
       const user = request.user as JWTPayload;
-      const rule = await this.rulesService.createRule(request.body, user.id);
+      const rule = await this.rulesService.createRule(request.body as CreateRuleRequest, user.id);
 
       // Create audit log
       await this.auditService.createAuditLog({
@@ -120,15 +113,13 @@ export class RulesController {
     }
   }
 
-  async approveRule(
-    request: FastifyRequest<{ Params: { id: string } }>,
-    reply: FastifyReply
-  ) {
+  async approveRule(request: FastifyRequest, reply: FastifyReply) {
     const startTime = Date.now();
 
     try {
       const user = request.user as JWTPayload;
-      const ruleId = parseInt(request.params.id);
+      const params = request.params as { id: string };
+      const ruleId = parseInt(params.id);
 
       // Get rule first
       const rule = await this.rulesService.getRuleById(ruleId);
@@ -199,15 +190,14 @@ export class RulesController {
     }
   }
 
-  async pauseRule(
-    request: FastifyRequest<{ Params: { id: string }; Body: UpdateRuleStatusRequest }>,
-    reply: FastifyReply
-  ) {
+  async pauseRule(request: FastifyRequest, reply: FastifyReply) {
     const startTime = Date.now();
 
     try {
       const user = request.user as JWTPayload;
-      const ruleId = parseInt(request.params.id);
+      const params = request.params as { id: string };
+      const body = request.body as UpdateRuleStatusRequest;
+      const ruleId = parseInt(params.id);
 
       const rule = await this.rulesService.getRuleById(ruleId);
       if (!rule) {
@@ -229,7 +219,7 @@ export class RulesController {
         metadata: {
           rule_name: rule.name,
           previous_status: rule.status,
-          reason: request.body.reason || 'No reason provided',
+          reason: body.reason || 'No reason provided',
         },
       });
 
@@ -254,15 +244,13 @@ export class RulesController {
     }
   }
 
-  async resumeRule(
-    request: FastifyRequest<{ Params: { id: string } }>,
-    reply: FastifyReply
-  ) {
+  async resumeRule(request: FastifyRequest, reply: FastifyReply) {
     const startTime = Date.now();
 
     try {
       const user = request.user as JWTPayload;
-      const ruleId = parseInt(request.params.id);
+      const params = request.params as { id: string };
+      const ruleId = parseInt(params.id);
 
       const rule = await this.rulesService.getRuleById(ruleId);
       if (!rule) {

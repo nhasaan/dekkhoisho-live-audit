@@ -13,14 +13,11 @@ export class AuthController {
     this.auditService = new AuditService();
   }
 
-  async login(
-    request: FastifyRequest<{ Body: LoginRequest }>,
-    reply: FastifyReply
-  ) {
+  async login(request: FastifyRequest, reply: FastifyReply) {
     const startTime = Date.now();
 
     try {
-      const { username, password } = request.body;
+      const { username, password } = request.body as LoginRequest;
 
       // Validate user credentials
       const user = await this.authService.validateUser(username, password);

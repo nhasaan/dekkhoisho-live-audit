@@ -10,25 +10,21 @@ export class AuditController {
     this.auditService = new AuditService();
   }
 
-  async getAuditLogs(
-    request: FastifyRequest<{ Querystring: GetAuditLogsQuery }>,
-    reply: FastifyReply
-  ) {
+  async getAuditLogs(request: FastifyRequest, reply: FastifyReply) {
     const startTime = Date.now();
 
     try {
-      const { data, nextCursor, hasMore, totalCount } = await this.auditService.getAuditLogs(
-        request.query
-      );
+      const query = request.query as GetAuditLogsQuery;
+      const { data, nextCursor, hasMore, totalCount} = await this.auditService.getAuditLogs(query);
 
       const response = ResponseBuilder.successPaginated(
         'Audit logs retrieved successfully',
         data.map(toAuditLogResponse),
         {
-          cursor: request.query.cursor || null,
+          cursor: query.cursor || null,
           next_cursor: nextCursor,
           has_more: hasMore,
-          limit: request.query.limit || 50,
+          limit: query.limit || 50,
           total_count: totalCount,
         },
         {

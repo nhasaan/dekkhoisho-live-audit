@@ -1,5 +1,5 @@
 import { createClient, RedisClientType } from 'redis';
-import type { RuleStats } from '../types/index.js';
+import type { RuleStatsResponse } from '../modules/events/events.dto.js';
 
 export class RedisService {
   private client: RedisClientType;
@@ -58,7 +58,7 @@ export class RedisService {
   }
 
   // Get top N rules
-  async getTopRules(limit: number = 5): Promise<RuleStats[]> {
+  async getTopRules(limit: number = 5): Promise<RuleStatsResponse[]> {
     try {
       const results = await this.client.zRangeWithScores('stats:top_rules', 0, limit - 1, {
         REV: true,

@@ -20,8 +20,11 @@ declare module 'fastify' {
     redis: RedisService;
     websocketClients: Set<WebSocket>;
   }
-  interface FastifyRequest {
-    user?: JWTPayload;
+}
+
+declare module '@fastify/jwt' {
+  interface FastifyJWT {
+    user: JWTPayload;
   }
 }
 
@@ -93,8 +96,7 @@ function registerWebSocket() {
     fastify.get(
       '/ws/events',
       { websocket: true },
-      (connection, req) => {
-        const { socket } = connection;
+      (socket, req) => {
 
         // Verify JWT token from query parameter
         const token = (req.query as any).token;
@@ -138,7 +140,7 @@ function registerWebSocket() {
               // TODO: Implement per-client filtering
             }
           } catch (error) {
-            server.log.error('WebSocket message error:', error);
+            server.log.error({ error }, 'WebSocket message error');
           }
         });
 
@@ -149,40 +151,13 @@ function registerWebSocket() {
         });
 
         // Handle errors
-        socket.on('error', (error) => {
-          server.log.error('WebSocket error:', error);
+        socket.on('error', (error: Error) => {
+          server.log.error({ error }, 'WebSocket error');
           server.websocketClients.delete(socket);
         });
       }
     );
   });
-}
-
-// Broadcast event to all WebSocket clients
-export function broadcastEvent(event: any) {
-  const message = JSON.stringify({
-    type: 'event',
-    data: event,
-  });
-
-  server.websocketClients.forEach((socket) => {
-    if (socket.readyState === 1) { // OPEN
-      try {
-        socket.send(message);
-      } catch (error) {
-        server.log.error('Failed to send to WebSocket client:', error);
-      }
-    }
-  });
-}
-
-// Make broadcast function available globally
-server.decorate('broadcastEvent', broadcastEvent);
-
-declare module 'fastify' {
-  interface FastifyInstance {
-    broadcastEvent: typeof broadcastEvent;
-  }
 }
 
 // Register routes
@@ -262,7 +237,7 @@ async function gracefulShutdown(signal: string) {
     server.log.info('Shutdown complete');
     process.exit(0);
   } catch (error) {
-    server.log.error('Error during shutdown:', error);
+    server.log.error({ error }, 'Error during shutdown');
     process.exit(1);
   }
 }
@@ -307,7 +282,7 @@ async function start() {
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
   } catch (error) {
-    server.log.error('Failed to start server:', error);
+    server.log.error({ error }, 'Failed to start server');
     process.exit(1);
   }
 }

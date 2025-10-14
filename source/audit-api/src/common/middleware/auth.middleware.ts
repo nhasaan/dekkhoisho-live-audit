@@ -1,9 +1,9 @@
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import type { JWTPayload } from '../../modules/auth/auth.dto.js';
 
-declare module 'fastify' {
-  interface FastifyRequest {
-    user?: JWTPayload;
+declare module '@fastify/jwt' {
+  interface FastifyJWT {
+    user: JWTPayload;
   }
 }
 
