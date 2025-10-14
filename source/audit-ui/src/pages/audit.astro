@@ -1,0 +1,349 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Audit Logs - Bitsmedia Audit">
+	<div class="audit-page">
+		<h1>Audit Logs</h1>
+		
+		<div class="filters-card">
+			<h2>Filters</h2>
+			<div class="filters-grid">
+				<div class="filter-group">
+					<label for="filter-user">User</label>
+					<input type="text" id="filter-user" placeholder="Username" />
+				</div>
+				<div class="filter-group">
+					<label for="filter-action">Action</label>
+					<select id="filter-action">
+						<option value="">All Actions</option>
+						<option value="LOGIN">LOGIN</option>
+						<option value="LOGOUT">LOGOUT</option>
+						<option value="DRAFT_RULE">DRAFT_RULE</option>
+						<option value="APPROVE_RULE">APPROVE_RULE</option>
+						<option value="PAUSE_RULE">PAUSE_RULE</option>
+						<option value="RESUME_RULE">RESUME_RULE</option>
+					</select>
+				</div>
+				<div class="filter-group">
+					<label for="filter-date-from">Date From</label>
+					<input type="date" id="filter-date-from" />
+				</div>
+				<div class="filter-group">
+					<label for="filter-date-to">Date To</label>
+					<input type="date" id="filter-date-to" />
+				</div>
+			</div>
+			<div class="filter-actions">
+				<button id="apply-filters-btn" class="btn-primary">Apply Filters</button>
+				<button id="clear-filters-btn" class="btn-secondary">Clear</button>
+			</div>
+		</div>
+		
+		<div class="table-card">
+			<div class="table-header">
+				<h2>Audit Entries</h2>
+				<span id="total-count" class="count-badge">0 entries</span>
+			</div>
+			
+			<div class="table-container">
+				<table id="audit-table">
+					<thead>
+						<tr>
+							<th>ID</th>
+							<th>User</th>
+							<th>Action</th>
+							<th>Target</th>
+							<th>Timestamp</th>
+							<th>Hash</th>
+						</tr>
+					</thead>
+					<tbody id="audit-tbody">
+						<tr>
+							<td colspan="6" class="loading">Loading...</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			
+			<div class="pagination">
+				<button id="prev-btn" class="btn-secondary" disabled>Previous</button>
+				<span id="page-info">Page 1 of 1</span>
+				<button id="next-btn" class="btn-secondary" disabled>Next</button>
+			</div>
+		</div>
+	</div>
+</Layout>
+
+<style>
+	.audit-page {
+		max-width: 1400px;
+		margin: 0 auto;
+	}
+	h1 {
+		color: #1a1a2e;
+		margin-bottom: 2rem;
+		font-size: 2.5rem;
+	}
+	.filters-card {
+		background: white;
+		padding: 2rem;
+		border-radius: 8px;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+		margin-bottom: 2rem;
+	}
+	.filters-card h2 {
+		color: #1a1a2e;
+		margin-bottom: 1.5rem;
+		font-size: 1.25rem;
+	}
+	.filters-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 1rem;
+		margin-bottom: 1.5rem;
+	}
+	.filter-group label {
+		display: block;
+		margin-bottom: 0.5rem;
+		color: #666;
+		font-size: 0.9rem;
+		font-weight: 500;
+	}
+	.filter-group input,
+	.filter-group select {
+		width: 100%;
+		padding: 0.75rem;
+		border: 2px solid #e0e0e0;
+		border-radius: 6px;
+		font-size: 0.95rem;
+	}
+	.filter-group input:focus,
+	.filter-group select:focus {
+		outline: none;
+		border-color: #4ecca3;
+	}
+	.filter-actions {
+		display: flex;
+		gap: 1rem;
+	}
+	.btn-primary, .btn-secondary {
+		padding: 0.75rem 1.5rem;
+		border: none;
+		border-radius: 6px;
+		font-size: 0.95rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition: background 0.2s;
+	}
+	.btn-primary {
+		background: #4ecca3;
+		color: #1a1a2e;
+	}
+	.btn-primary:hover {
+		background: #45b393;
+	}
+	.btn-secondary {
+		background: #e0e0e0;
+		color: #333;
+	}
+	.btn-secondary:hover {
+		background: #d0d0d0;
+	}
+	.btn-secondary:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+	.table-card {
+		background: white;
+		border-radius: 8px;
+		box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+		overflow: hidden;
+	}
+	.table-header {
+		padding: 1.5rem 2rem;
+		border-bottom: 1px solid #e0e0e0;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+	.table-header h2 {
+		color: #1a1a2e;
+		font-size: 1.25rem;
+	}
+	.count-badge {
+		background: #4ecca3;
+		color: #1a1a2e;
+		padding: 0.5rem 1rem;
+		border-radius: 20px;
+		font-size: 0.85rem;
+		font-weight: 600;
+	}
+	.table-container {
+		overflow-x: auto;
+	}
+	table {
+		width: 100%;
+		border-collapse: collapse;
+	}
+	th {
+		background: #f5f5f5;
+		padding: 1rem;
+		text-align: left;
+		font-size: 0.85rem;
+		font-weight: 600;
+		color: #666;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+	}
+	td {
+		padding: 1rem;
+		border-bottom: 1px solid #f0f0f0;
+		color: #333;
+		font-size: 0.9rem;
+	}
+	td.loading {
+		text-align: center;
+		color: #999;
+	}
+	.hash-cell {
+		font-family: monospace;
+		font-size: 0.8rem;
+		max-width: 150px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.action-badge {
+		display: inline-block;
+		padding: 0.25rem 0.75rem;
+		border-radius: 12px;
+		font-size: 0.75rem;
+		font-weight: 600;
+	}
+	.action-login { background: #d1f2eb; color: #0a6e5c; }
+	.action-logout { background: #fdecea; color: #c0392b; }
+	.action-rule { background: #dfe6f1; color: #1f4788; }
+	.pagination {
+		padding: 1.5rem 2rem;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		border-top: 1px solid #e0e0e0;
+	}
+	#page-info {
+		color: #666;
+		font-size: 0.9rem;
+	}
+</style>
+
+<script>
+	import { isAuthenticated } from '../utils/auth';
+	import { api } from '../utils/api';
+
+	// Check authentication
+	if (!isAuthenticated()) {
+		window.location.href = '/login';
+	}
+
+	let currentPage = 1;
+	const limit = 20;
+	let totalPages = 1;
+
+	async function loadAuditLogs() {
+		const tbody = document.getElementById('audit-tbody');
+		const totalCountEl = document.getElementById('total-count');
+		const pageInfo = document.getElementById('page-info');
+		const prevBtn = document.getElementById('prev-btn') as HTMLButtonElement;
+		const nextBtn = document.getElementById('next-btn') as HTMLButtonElement;
+		
+		if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="loading">Loading...</td></tr>';
+		
+		try {
+			// Get filter values
+			const user = (document.getElementById('filter-user') as HTMLInputElement)?.value;
+			const action = (document.getElementById('filter-action') as HTMLSelectElement)?.value;
+			const dateFrom = (document.getElementById('filter-date-from') as HTMLInputElement)?.value;
+			const dateTo = (document.getElementById('filter-date-to') as HTMLInputElement)?.value;
+			
+			// Build query params
+			const params = new URLSearchParams();
+			params.append('page', currentPage.toString());
+			params.append('limit', limit.toString());
+			if (user) params.append('user', user);
+			if (action) params.append('action', action);
+			if (dateFrom) params.append('dateFrom', new Date(dateFrom).toISOString());
+			if (dateTo) params.append('dateTo', new Date(dateTo).toISOString());
+			
+			const response = await api.get(`/audit/logs?${params.toString()}`);
+			const data = response.data;
+			
+			// Update UI
+			if (totalCountEl) totalCountEl.textContent = `${data.total.toLocaleString()} entries`;
+			totalPages = data.totalPages;
+			if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+			
+			// Update buttons
+			if (prevBtn) prevBtn.disabled = currentPage === 1;
+			if (nextBtn) nextBtn.disabled = currentPage === totalPages;
+			
+			// Populate table
+			if (tbody) {
+				if (data.logs.length === 0) {
+					tbody.innerHTML = '<tr><td colspan="6" class="loading">No audit logs found</td></tr>';
+				} else {
+					tbody.innerHTML = data.logs.map((log: any) => `
+						<tr>
+							<td>${log.id}</td>
+							<td><strong>${log.username}</strong></td>
+							<td>
+								<span class="action-badge action-${log.action.toLowerCase().includes('login') ? 'login' : log.action.toLowerCase().includes('logout') ? 'logout' : 'rule'}">
+									${log.action}
+								</span>
+							</td>
+							<td>${log.target || '-'}</td>
+							<td>${new Date(log.timestamp).toLocaleString()}</td>
+							<td class="hash-cell" title="${log.hash}">${log.hash.substring(0, 16)}...</td>
+						</tr>
+					`).join('');
+				}
+			}
+		} catch (error) {
+			console.error('Failed to load audit logs:', error);
+			if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="loading">Failed to load audit logs</td></tr>';
+		}
+	}
+
+	// Event listeners
+	document.getElementById('apply-filters-btn')?.addEventListener('click', () => {
+		currentPage = 1;
+		loadAuditLogs();
+	});
+
+	document.getElementById('clear-filters-btn')?.addEventListener('click', () => {
+		(document.getElementById('filter-user') as HTMLInputElement).value = '';
+		(document.getElementById('filter-action') as HTMLSelectElement).value = '';
+		(document.getElementById('filter-date-from') as HTMLInputElement).value = '';
+		(document.getElementById('filter-date-to') as HTMLInputElement).value = '';
+		currentPage = 1;
+		loadAuditLogs();
+	});
+
+	document.getElementById('prev-btn')?.addEventListener('click', () => {
+		if (currentPage > 1) {
+			currentPage--;
+			loadAuditLogs();
+		}
+	});
+
+	document.getElementById('next-btn')?.addEventListener('click', () => {
+		if (currentPage < totalPages) {
+			currentPage++;
+			loadAuditLogs();
+		}
+	});
+
+	// Initial load
+	loadAuditLogs();
+</script>
+

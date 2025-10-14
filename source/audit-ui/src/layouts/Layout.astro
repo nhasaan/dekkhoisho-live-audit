@@ -1,0 +1,144 @@
+---
+interface Props {
+	title: string;
+	showNav?: boolean;
+}
+
+const { title, showNav = true } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content="Bitsmedia Live Audit System" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<title>{title}</title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+			body {
+				font-family: system-ui, -apple-system, sans-serif;
+				background: #f5f5f5;
+				color: #333;
+			}
+			.container {
+				max-width: 1400px;
+				margin: 0 auto;
+				padding: 0 20px;
+			}
+			nav {
+				background: #1a1a2e;
+				color: white;
+				padding: 1rem 0;
+				box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+			}
+			nav .container {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			nav h1 {
+				font-size: 1.5rem;
+			}
+			nav .nav-links {
+				display: flex;
+				gap: 2rem;
+				align-items: center;
+			}
+			nav a {
+				color: white;
+				text-decoration: none;
+				transition: color 0.2s;
+			}
+			nav a:hover {
+				color: #4ecca3;
+			}
+			.logout-btn {
+				background: #e74c3c;
+				border: none;
+				color: white;
+				padding: 0.5rem 1rem;
+				border-radius: 4px;
+				cursor: pointer;
+				font-size: 0.9rem;
+			}
+			.logout-btn:hover {
+				background: #c0392b;
+			}
+			.user-info {
+				display: flex;
+				align-items: center;
+				gap: 1rem;
+			}
+			.role-badge {
+				background: #4ecca3;
+				color: #1a1a2e;
+				padding: 0.25rem 0.75rem;
+				border-radius: 12px;
+				font-size: 0.85rem;
+				font-weight: 600;
+			}
+			main {
+				padding: 2rem 0;
+				min-height: calc(100vh - 80px);
+			}
+		</style>
+	</head>
+	<body>
+		{showNav && (
+			<nav id="navbar">
+				<div class="container">
+					<h1>🔒 Bitsmedia Audit</h1>
+					<div class="nav-links">
+						<a href="/">Dashboard</a>
+						<a href="/audit">Audit Logs</a>
+						<a href="/live">Live Traffic</a>
+						<a href="/rules" id="rules-link">Rules</a>
+						<div class="user-info">
+							<span id="username"></span>
+							<span class="role-badge" id="role-badge"></span>
+							<button class="logout-btn" id="logout-btn">Logout</button>
+						</div>
+					</div>
+				</div>
+			</nav>
+		)}
+		
+		<main>
+			<div class="container">
+				<slot />
+			</div>
+		</main>
+
+		<script>
+			import { getUser, logout, hasRole } from '../utils/auth';
+
+			// Update nav with user info
+			const user = getUser();
+			if (user) {
+				const usernameEl = document.getElementById('username');
+				const roleBadgeEl = document.getElementById('role-badge');
+				if (usernameEl) usernameEl.textContent = user.username;
+				if (roleBadgeEl) roleBadgeEl.textContent = user.role.toUpperCase();
+				
+				// Hide rules link if viewer
+				if (!hasRole('analyst')) {
+					const rulesLink = document.getElementById('rules-link');
+					if (rulesLink) rulesLink.style.display = 'none';
+				}
+			}
+
+			// Logout handler
+			const logoutBtn = document.getElementById('logout-btn');
+			if (logoutBtn) {
+				logoutBtn.addEventListener('click', logout);
+			}
+		</script>
+	</body>
+</html>
+
