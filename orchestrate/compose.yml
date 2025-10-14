@@ -1,0 +1,92 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: audit-postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: audit_db
+    networks:
+      - audit-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: audit-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - audit-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Audit API (Backend)
+  audit-api:
+    build:
+      context: ../source/audit-api
+      dockerfile: ../../orchestrate/audit-api/Dockerfile
+    container_name: audit-api
+    ports:
+      - "3000:3000"
+    env_file:
+      - audit-api/app.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - audit-network
+    restart: unless-stopped
+
+  # Audit UI (Frontend)
+  audit-ui:
+    build:
+      context: ../source/audit-ui
+      dockerfile: ../../orchestrate/audit-ui/Dockerfile
+    container_name: audit-ui
+    ports:
+      - "4321:4321"
+    env_file:
+      - audit-ui/app.env
+    depends_on:
+      - audit-api
+    networks:
+      - audit-network
+    restart: unless-stopped
+
+  # Simulator (Worker)
+  simulator:
+    build:
+      context: ../source/simulator
+      dockerfile: ../../orchestrate/simulator/Dockerfile
+    container_name: simulator
+    env_file:
+      - simulator/app.env
+    depends_on:
+      - audit-api
+    networks:
+      - audit-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  audit-network:
+    driver: bridge
+
