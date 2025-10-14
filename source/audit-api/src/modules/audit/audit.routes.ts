@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { AuditController } from './audit.controller.js';
-import { authenticateJWT } from '../../middleware/auth.js';
+import { authenticateJWT } from '../../common/middleware/auth.middleware.js';
 
 export async function auditRoutes(server: FastifyInstance) {
   const controller = new AuditController();

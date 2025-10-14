@@ -5,22 +5,23 @@ import rateLimit from '@fastify/rate-limit';
 import jwt from '@fastify/jwt';
 import websocket from '@fastify/websocket';
 import { config } from './config/index.js';
-import { DatabaseService } from './database/index.js';
+import { prisma } from './prisma/client.js';
 import { RedisService } from './services/redis.js';
-import { AuditService } from './services/audit.js';
-import { authRoutes } from './routes/auth.js';
-import { eventRoutes } from './routes/events.js';
-import { auditRoutes } from './routes/audit.js';
-import { ruleRoutes } from './routes/rules.js';
+import { authRoutes } from './modules/auth/auth.routes.js';
+import { eventRoutes } from './modules/events/events.routes.js';
+import { auditRoutes } from './modules/audit/audit.routes.js';
+import { ruleRoutes } from './modules/rules/rules.routes.js';
 import type { WebSocket } from 'ws';
+import type { JWTPayload } from './modules/auth/auth.dto.js';
 
 // Augment Fastify instance with custom properties
 declare module 'fastify' {
   interface FastifyInstance {
-    db: DatabaseService;
     redis: RedisService;
-    audit: AuditService;
     websocketClients: Set<WebSocket>;
+  }
+  interface FastifyRequest {
+    user?: JWTPayload;
   }
 }
 
@@ -39,17 +40,16 @@ const server = Fastify({
         }
       : undefined,
   },
+  genReqId: () => {
+    return crypto.randomUUID();
+  },
 });
 
 // Initialize services
-const db = new DatabaseService(config.database.url);
 const redis = new RedisService(config.redis.url);
-const audit = new AuditService(db);
 
 // Attach services to server instance
-server.decorate('db', db);
 server.decorate('redis', redis);
-server.decorate('audit', audit);
 server.decorate('websocketClients', new Set<WebSocket>());
 
 // Register plugins
@@ -87,7 +87,7 @@ async function registerPlugins() {
   });
 }
 
-// WebSocket route
+// WebSocket route for live event streaming
 function registerWebSocket() {
   server.register(async (fastify) => {
     fastify.get(
@@ -112,14 +112,14 @@ function registerWebSocket() {
 
         // Add client to tracking set
         server.websocketClients.add(socket);
-        server.log.info('WebSocket client connected');
+        server.log.info(`WebSocket client connected (total: ${server.websocketClients.size})`);
 
         // Send connected message
         socket.send(
           JSON.stringify({
             type: 'connected',
             message: 'WebSocket connection established',
-            clientId: Math.random().toString(36).substring(7),
+            clientId: crypto.randomUUID(),
           })
         );
 
@@ -132,9 +132,10 @@ function registerWebSocket() {
               socket.send(JSON.stringify({ type: 'pong' }));
             }
             
-            // Handle subscribe with filters (future enhancement)
+            // Handle subscribe with filters
             if (message.type === 'subscribe') {
               server.log.debug('Client subscribed with filters:', message.filters);
+              // TODO: Implement per-client filtering
             }
           } catch (error) {
             server.log.error('WebSocket message error:', error);
@@ -144,7 +145,7 @@ function registerWebSocket() {
         // Handle disconnect
         socket.on('close', () => {
           server.websocketClients.delete(socket);
-          server.log.info('WebSocket client disconnected');
+          server.log.info(`WebSocket client disconnected (remaining: ${server.websocketClients.size})`);
         });
 
         // Handle errors
@@ -157,23 +158,62 @@ function registerWebSocket() {
   });
 }
 
+// Broadcast event to all WebSocket clients
+export function broadcastEvent(event: any) {
+  const message = JSON.stringify({
+    type: 'event',
+    data: event,
+  });
+
+  server.websocketClients.forEach((socket) => {
+    if (socket.readyState === 1) { // OPEN
+      try {
+        socket.send(message);
+      } catch (error) {
+        server.log.error('Failed to send to WebSocket client:', error);
+      }
+    }
+  });
+}
+
+// Make broadcast function available globally
+server.decorate('broadcastEvent', broadcastEvent);
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    broadcastEvent: typeof broadcastEvent;
+  }
+}
+
 // Register routes
 async function registerRoutes() {
   // Health check endpoint
   server.get('/health', async (request, reply) => {
-    const dbHealthy = await db.healthCheck();
-    const redisHealthy = await redis.healthCheck();
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      const dbHealthy = true;
+      const redisHealthy = await redis.healthCheck();
 
-    return {
-      status: dbHealthy && redisHealthy ? 'ok' : 'error',
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      environment: config.server.env,
-      services: {
-        database: dbHealthy ? 'connected' : 'disconnected',
-        redis: redisHealthy ? 'connected' : 'disconnected',
-      },
-    };
+      return {
+        status: dbHealthy && redisHealthy ? 'ok' : 'degraded',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        environment: config.server.env,
+        services: {
+          database: dbHealthy ? 'connected' : 'disconnected',
+          redis: redisHealthy ? 'connected' : 'disconnected',
+        },
+      };
+    } catch (error) {
+      return reply.code(503).send({
+        status: 'error',
+        timestamp: new Date().toISOString(),
+        services: {
+          database: 'disconnected',
+          redis: 'unknown',
+        },
+      });
+    }
   });
 
   // API info endpoint
@@ -184,16 +224,16 @@ async function registerRoutes() {
       description: 'Security event ingestion and audit system with RBAC',
       endpoints: {
         health: '/health',
-        auth: '/auth/login',
+        auth: '/auth',
         events: '/events',
         audit: '/audit',
         rules: '/rules',
-        websocket: `ws://${config.server.host}:${config.server.port}/ws`,
+        websocket: `ws://${config.server.host}:${config.server.port}/ws/events`,
       },
     };
   });
 
-  // Register route modules
+  // Register module routes
   await server.register(authRoutes, { prefix: '/auth' });
   await server.register(eventRoutes, { prefix: '/events' });
   await server.register(auditRoutes, { prefix: '/audit' });
@@ -213,8 +253,10 @@ async function gracefulShutdown(signal: string) {
     // Close server
     await server.close();
 
-    // Close database and redis connections
-    await db.close();
+    // Close Prisma connection
+    await prisma.$disconnect();
+
+    // Close Redis connection
     await redis.disconnect();
 
     server.log.info('Shutdown complete');
@@ -230,8 +272,9 @@ async function start() {
   try {
     server.log.info('🚀 Starting Bitsmedia Live Audit API...');
 
-    // Initialize database
-    await db.initialize(server.log);
+    // Connect to Prisma
+    await prisma.$connect();
+    server.log.info('✅ Database connected (Prisma)');
 
     // Connect to Redis
     await redis.connect(server.log);
@@ -271,4 +314,3 @@ async function start() {
 
 // Start the server
 start();
-
