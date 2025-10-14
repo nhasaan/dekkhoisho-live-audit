@@ -76,7 +76,7 @@ const DATA_POOLS = {
 };
 
 // Helper: Get random item from array
-function randomItem<T>(array: T[]): T {
+function randomItem<T>(array: readonly T[]): T {
   return array[Math.floor(Math.random() * array.length)];
 }
 
