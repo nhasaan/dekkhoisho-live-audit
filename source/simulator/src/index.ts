@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Configuration
-const API_URL = process.env.API_URL || 'http://localhost:3000';
+const API_URL = process.env.API_URL || 'http://localhost:5001';
 const INTERVAL_MS = parseInt(process.env.INTERVAL_MS || '500', 10);
 const NODE_ENV = process.env.NODE_ENV || 'development';
 

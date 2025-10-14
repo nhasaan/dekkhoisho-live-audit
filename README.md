@@ -143,7 +143,7 @@ bitsmedia-live-audit/
 cd orchestrate
 
 # Start all services
-docker-compose up --build
+docker compose up --build
 
 # Services will be available at:
 # - Backend API: http://localhost:3000
@@ -340,10 +340,10 @@ npm run dev
 ### Backend won't start
 ```bash
 # Check logs
-docker-compose logs audit-api
+docker compose logs audit-api
 
 # Verify database
-docker-compose logs postgres
+docker compose logs postgres
 
 # Check environment variables
 cat orchestrate/audit-api/app.env
@@ -352,16 +352,16 @@ cat orchestrate/audit-api/app.env
 ### Simulator not sending events
 ```bash
 # Check logs
-docker-compose logs simulator
+docker compose logs simulator
 
 # Verify API is reachable
-docker-compose exec simulator ping audit-api
+docker compose exec simulator ping audit-api
 ```
 
 ### Database connection issues
 ```bash
 # Restart postgres
-docker-compose restart postgres
+docker compose restart postgres
 
 # Check if port is already in use
 lsof -i :5432

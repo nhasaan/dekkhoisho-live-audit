@@ -311,7 +311,7 @@ export const createWSClient = (token: string) => {
 
 ```bash
 cd bitsmedia-live-audit/orchestrate
-docker-compose up --build
+docker compose up --build
 ```
 
 ### Test Backend
@@ -326,7 +326,7 @@ curl -X POST http://localhost:3000/auth/login \
   -d '{"username":"admin","password":"123"}'
 
 # Watch simulator logs
-docker-compose logs -f simulator
+docker compose logs -f simulator
 ```
 
 ### Develop Frontend Locally
