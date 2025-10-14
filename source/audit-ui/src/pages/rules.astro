@@ -301,7 +301,8 @@ import Layout from '../layouts/Layout.astro';
 			if (statusFilter) params.append('status', statusFilter);
 			
 			const response = await api.get(`/rules?${params.toString()}`);
-			const rules = response.data.rules || [];
+			// Extract from structured response
+			const rules = response.data.data || [];
 			
 			if (grid) {
 				if (rules.length === 0) {

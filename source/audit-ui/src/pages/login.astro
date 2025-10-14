@@ -150,7 +150,8 @@ import Layout from '../layouts/Layout.astro';
 		
 		try {
 			const response = await api.post('/auth/login', { username, password });
-			const { token, user } = response.data;
+			// Extract from structured response: response.data.data contains { token, user }
+			const { token, user } = response.data.data || response.data;
 			
 			setAuth(token, user);
 			window.location.href = '/';

@@ -190,20 +190,20 @@ import Layout from '../layouts/Layout.astro';
 		try {
 			// Get events count
 			const eventsRes = await api.get('/events/recent?limit=1');
-			const eventsCount = eventsRes.data.total || 0;
+			const eventsCount = eventsRes.data.meta?.pagination?.total_count || 0;
 			const eventsEl = document.getElementById('events-count');
 			if (eventsEl) eventsEl.textContent = eventsCount.toLocaleString();
 			
 			// Get audit logs count
 			const auditRes = await api.get('/audit/logs?limit=1');
-			const auditCount = auditRes.data.total || 0;
+			const auditCount = auditRes.data.meta?.pagination?.total_count || 0;
 			const auditEl = document.getElementById('audit-count');
 			if (auditEl) auditEl.textContent = auditCount.toLocaleString();
 			
 			// Get rules count (if has access)
 			if (hasRole('analyst')) {
 				const rulesRes = await api.get('/rules?limit=1');
-				const rulesCount = rulesRes.data.total || 0;
+				const rulesCount = rulesRes.data.meta?.pagination?.total_count || 0;
 				const rulesEl = document.getElementById('rules-count');
 				if (rulesEl) rulesEl.textContent = rulesCount.toLocaleString();
 			}

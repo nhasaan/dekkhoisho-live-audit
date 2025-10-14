@@ -259,7 +259,9 @@ import Layout from '../layouts/Layout.astro';
 	async function loadRuleStats() {
 		try {
 			const response = await api.get('/events/stats/rules?window=15m');
-			const rules = response.data.rules || [];
+			// Extract from structured response
+			const apiData = response.data.data || {};
+			const rules = apiData.rules || [];
 			
 			const chartData = rules.map((rule: any) => ({
 				name: rule.rule_name.length > 25 ? rule.rule_name.substring(0, 25) + '...' : rule.rule_name,

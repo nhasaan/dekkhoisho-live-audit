@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 const API_URL = import.meta.env.PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -17,15 +17,44 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle auth errors
+// Handle structured responses and errors
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  (response) => {
+    // Extract data from structured response
+    if (response.data && response.data.status === 'SUCCESS') {
+      // Keep the full response but make data easily accessible
+      response.data.success = true;
+    }
+    return response;
+  },
+  (error: AxiosError<any>) => {
+    // Handle structured error responses
+    if (error.response?.data?.status === 'FAILED') {
+      const errorData = error.response.data;
+      error.message = errorData.message || error.message;
+      
+      // Log detailed error in development
+      if (errorData.debug) {
+        console.error('API Error Details:', errorData.debug);
+      }
+    }
+
+    // Handle 401 - redirect to login
     if (error.response?.status === 401 && typeof window !== 'undefined') {
       localStorage.clear();
       window.location.href = '/login';
     }
+
     return Promise.reject(error);
   }
 );
 
+// Helper to extract data from structured response
+export function extractData<T>(response: any): T {
+  return response.data?.data || response.data;
+}
+
+// Helper to extract pagination metadata
+export function extractPagination(response: any) {
+  return response.data?.meta?.pagination || null;
+}
