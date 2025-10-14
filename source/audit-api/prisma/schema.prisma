@@ -65,8 +65,10 @@ model AuditLog {
 
   @@index([username])
   @@index([action])
-  @@index([timestamp])
-  @@index([createdAt])
+  @@index([timestamp, id]) // Compound index for cursor pagination
+  @@index([createdAt, id]) // Compound index for cursor pagination
+  @@index([userId, timestamp]) // For user-specific queries
+  @@index([action, timestamp]) // For action-specific queries
   @@map("audit_logs")
 }
 
@@ -86,10 +88,12 @@ model Event {
   env        String        @db.VarChar(20)
   createdAt  DateTime      @default(now()) @map("created_at")
 
-  @@index([ts])
-  @@index([ruleId])
-  @@index([severity])
-  @@index([createdAt])
+  @@index([ts, id]) // Compound index for cursor pagination by timestamp
+  @@index([createdAt, id]) // Compound index for cursor pagination by createdAt
+  @@index([ruleId, ts]) // For rule-specific queries with time ordering
+  @@index([severity, ts]) // For severity-specific queries with time ordering
+  @@index([sourceIp, ts]) // For IP-specific queries
+  @@index([action, ts]) // For action-specific queries
   @@map("events")
 }
 
@@ -107,7 +111,9 @@ model Rule {
   // Relations
   creator     User       @relation("CreatedRules", fields: [createdBy], references: [id])
 
-  @@index([status])
-  @@index([createdAt])
+  @@index([status, createdAt, id]) // Compound index for filtered cursor pagination
+  @@index([createdAt, id]) // Compound index for cursor pagination by createdAt
+  @@index([createdBy, createdAt]) // For creator-specific queries
+  @@index([severity, status]) // For filtering by severity and status
   @@map("rules")
 }
