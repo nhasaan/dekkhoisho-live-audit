@@ -4,6 +4,7 @@ import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import jwt from '@fastify/jwt';
 import websocket from '@fastify/websocket';
+import crypto from 'crypto';
 import { config } from './config/index.js';
 import { prisma } from './prisma/client.js';
 import { RedisService } from './services/redis.js';

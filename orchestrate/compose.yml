@@ -8,20 +8,20 @@ services:
       dockerfile: ../../orchestrate/audit-api/Dockerfile
     container_name: audit-api
     ports:
-      - "5001:5001"
+      - '5001:5001'
     env_file:
       - audit-api/app.env
     networks:
       - audit-network
     restart: unless-stopped
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - 'host.docker.internal:host-gateway'
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:5001/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
-      interval: 30s
+      test: ['CMD', 'wget', '--spider', '--quiet', 'http://127.0.0.1:5001/health']
+      interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 30s
+      retries: 5
+      start_period: 40s
 
   # Audit UI (Frontend)
   audit-ui:
@@ -33,7 +33,7 @@ services:
         PUBLIC_WS_URL: ws://localhost:5001/ws
     container_name: audit-ui
     ports:
-      - "4321:4321"
+      - '4321:4321'
     env_file:
       - audit-ui/app.env
     depends_on:
@@ -42,7 +42,7 @@ services:
     networks:
       - audit-network
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - 'host.docker.internal:host-gateway'
     restart: unless-stopped
 
   # Simulator (Worker)
@@ -59,7 +59,7 @@ services:
     networks:
       - audit-network
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - 'host.docker.internal:host-gateway'
     restart: unless-stopped
 
 networks:

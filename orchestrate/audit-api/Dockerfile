@@ -40,9 +40,9 @@ COPY --from=builder /app/dist ./dist
 # Expose port
 EXPOSE 5001
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:5001/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+# Health check - use 127.0.0.1 instead of localhost to avoid IPv6 issues
+HEALTHCHECK --interval=10s --timeout=5s --start-period=40s --retries=5 \
+  CMD wget --spider --quiet http://127.0.0.1:5001/health || exit 1
 
 # Start server (migrations should be run manually or via CI/CD)
 CMD ["node", "dist/server.js"]
