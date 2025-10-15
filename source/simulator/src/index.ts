@@ -87,15 +87,16 @@ function randomLatency(): number {
   return Math.floor(base);
 }
 
-// Event counter
-let eventCounter = 1;
+// Event counter - use timestamp + random to ensure uniqueness across restarts
+let eventCounter = 0;
 
 // Generate a random security event
 function generateEvent() {
   const rule = randomItem(DATA_POOLS.rules);
+  const uniqueId = `evt_${Date.now()}_${eventCounter++}_${Math.random().toString(36).substr(2, 9)}`;
 
   return {
-    id: `evt_${eventCounter++}`,
+    id: uniqueId,
     ts: new Date().toISOString(),
     source_ip: randomItem(DATA_POOLS.sourceIps),
     path: randomItem(DATA_POOLS.paths),
