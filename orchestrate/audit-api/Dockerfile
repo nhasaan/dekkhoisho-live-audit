@@ -44,5 +44,5 @@ EXPOSE 5001
 HEALTHCHECK --interval=30s --timeout=3s --start-period=30s --retries=3 \
   CMD node -e "require('http').get('http://localhost:5001/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Run migrations and start server
-CMD npx prisma migrate deploy && npx prisma db seed && node dist/server.js
+# Start server (migrations should be run manually or via CI/CD)
+CMD ["node", "dist/server.js"]
