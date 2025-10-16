@@ -1,7 +1,70 @@
 name: dekkoisho
 
+# =============================================================================
+# PREREQUISITES:
+# - PostgreSQL 15+ must be running (see commented service below or use existing)
+# - Redis 7+ must be running (see commented service below or use existing)
+# - Both must be on the 'common-net' network
+#
+# OPTION 1: Use existing PostgreSQL/Redis (default)
+#   - Uncomment nothing, ensure your existing services are on common-net
+#   - Update audit-api/app.env with correct connection strings
+#
+# OPTION 2: Run PostgreSQL/Redis with this compose file
+#   - Uncomment the postgres and redis services below
+#   - Update audit-api/app.env if needed
+# =============================================================================
+
 services:
+  # ---------------------------------------------------------------------------
+  # Optional: PostgreSQL Database
+  # Uncomment this service if you want to run PostgreSQL in Docker
+  # ---------------------------------------------------------------------------
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: common-postgres
+  #   environment:
+  #     POSTGRES_USER: admin
+  #     POSTGRES_PASSWORD: 1qazZAQ!
+  #     POSTGRES_DB: audit_db
+  #   ports:
+  #     - '5432:5432'
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   networks:
+  #     - audit-network
+  #   healthcheck:
+  #     test: ['CMD-SHELL', 'pg_isready -U admin -d audit_db']
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Optional: Redis Cache
+  # Uncomment this service if you want to run Redis in Docker
+  # ---------------------------------------------------------------------------
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: common-redis-1
+  #   command: redis-server --requirepass 1qazZAQ!
+  #   ports:
+  #     - '6379:6379'
+  #   volumes:
+  #     - redis_data:/data
+  #   networks:
+  #     - audit-network
+  #   healthcheck:
+  #     test: ['CMD', 'redis-cli', '--raw', 'incr', 'ping']
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+  #   restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
   # Audit API (Backend)
+  # Requires: PostgreSQL and Redis (running and healthy)
+  # ---------------------------------------------------------------------------
   audit-api:
     build:
       context: ../source/audit-api
@@ -11,6 +74,12 @@ services:
       - '5001:5001'
     env_file:
       - audit-api/app.env
+    # Uncomment depends_on below if you uncommented postgres and redis services
+    # depends_on:
+    #   postgres:
+    #     condition: service_healthy
+    #   redis:
+    #     condition: service_healthy
     networks:
       - audit-network
     restart: unless-stopped
@@ -23,7 +92,10 @@ services:
       retries: 5
       start_period: 40s
 
+  # ---------------------------------------------------------------------------
   # Audit UI (Frontend)
+  # Requires: audit-api (running and healthy)
+  # ---------------------------------------------------------------------------
   audit-ui:
     build:
       context: ../source/audit-ui
@@ -45,7 +117,11 @@ services:
       - 'host.docker.internal:host-gateway'
     restart: unless-stopped
 
-  # Simulator (Worker)
+  # ---------------------------------------------------------------------------
+  # Simulator (Event Generator)
+  # Requires: audit-api (running and healthy)
+  # Generates continuous stream of test security events
+  # ---------------------------------------------------------------------------
   simulator:
     build:
       context: ../source/simulator
@@ -69,3 +145,10 @@ networks:
   docker-commons:
     external: true
     name: common-net
+
+# Uncomment volumes below if you uncommented postgres and redis services
+# volumes:
+#   postgres_data:
+#     driver: local
+#   redis_data:
+#     driver: local

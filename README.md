@@ -14,7 +14,7 @@ Full-stack security event ingestion and audit system with RBAC, immutable audit 
 - [Quick Start](#-quick-start)
 - [Configuration](#-configuration)
 - [API Documentation](#-api-documentation)
-- [Default Users](#-default-users)
+- [Database Schema](#-database-schema)
 - [Troubleshooting](#-troubleshooting)
 
 ---
@@ -79,6 +79,23 @@ Full-stack security event ingestion and audit system with RBAC, immutable audit 
 
 ## 🚀 Quick Start
 
+### Prerequisites
+
+**Required Services:**
+- **PostgreSQL 15+** running on port 5432
+- **Redis 7+** running on port 6379
+- Both services must be on the `common-net` Docker network
+
+**Option 1: Use Existing PostgreSQL/Redis** (Default)
+- Ensure your existing PostgreSQL and Redis are running
+- Ensure they're on the `common-net` network: `docker network inspect common-net`
+- Update connection strings in `orchestrate/audit-api/app.env`
+
+**Option 2: Run PostgreSQL/Redis with Docker Compose**
+- Uncomment the `postgres` and `redis` services in `orchestrate/compose.yml`
+- Uncomment the `depends_on` section in the `audit-api` service
+- Uncomment the `volumes` section at the bottom of the file
+
 ### Using Docker Compose (Recommended)
 
 ```bash
@@ -86,9 +103,16 @@ Full-stack security event ingestion and audit system with RBAC, immutable audit 
 cd dekkhoisho-live-audit
 
 # 2. Ensure PostgreSQL and Redis are running
-# (If using external services, update orchestrate/audit-api/app.env)
+# See Prerequisites section above
 
-# 3. Start all services
+# 3. Run database migrations and seed default users
+cd source/audit-api
+npm install
+npx prisma migrate deploy
+npx prisma db seed
+cd ../..
+
+# 4. Start all services
 docker compose -f orchestrate/compose.yml up --build
 
 # Services will be available at:
@@ -97,12 +121,21 @@ docker compose -f orchestrate/compose.yml up --build
 # - Health Check: http://localhost:5001/health
 ```
 
+### Default Users (Created by Seed Script)
+
+The seed script automatically creates these users:
+
+| Username | Password | Role | Use Case |
+|----------|----------|------|----------|
+| `viewer` | `123` | Viewer | Read-only access |
+| `analyst` | `123` | Analyst | Can draft rules |
+| `admin` | `123` | Admin | Full access |
+
+⚠️ **Change these passwords in production!**
+
 ### Services Startup Order
 
-1. **External Dependencies** (must be running first):
-   - PostgreSQL on port 5432
-   - Redis on port 6379
-
+1. **PostgreSQL & Redis** (must be running first)
 2. **audit-api** starts and waits for healthy status
 3. **audit-ui** and **simulator** start after API is healthy
 
@@ -209,18 +242,6 @@ For complete API documentation including:
 
 **WebSocket**:
 - `WS /ws/events?token={JWT}` - Real-time event stream
-
----
-
-## 👥 Default Users
-
-| Username | Password | Role | Permissions |
-|----------|----------|------|-------------|
-| `viewer` | `123` | Viewer | Read-only access to events and logs |
-| `analyst` | `123` | Analyst | Read + Draft security rules |
-| `admin` | `123` | Admin | Full access + Approve/Pause rules |
-
-**⚠️ Change these passwords in production!**
 
 ---
 
@@ -371,6 +392,56 @@ localStorage.clear()
 
 ---
 
+## 🔧 Development Mode
+
+### Run Backend Locally
+
+```bash
+cd source/audit-api
+
+# Setup environment
+cp ../../orchestrate/audit-api/env.example .env
+
+# Update .env with local database URLs
+# DATABASE_URL=postgresql://admin:password@localhost:5432/audit_db
+# REDIS_URL=redis://localhost:6379
+
+# Install and run
+npm install
+npx prisma generate
+npx prisma db push
+npm run dev
+
+# Server runs on http://localhost:5001
+```
+
+### Run Frontend Locally
+
+```bash
+cd source/audit-ui
+
+# Setup environment
+echo "PUBLIC_API_URL=http://localhost:5001" > .env
+echo "PUBLIC_WS_URL=ws://localhost:5001/ws" >> .env
+
+# Install and run
+npm install
+npm run dev
+
+# UI runs on http://localhost:4321
+```
+
+---
+
+## 📚 Documentation
+
+- **[ARCHITECTURE.md](../ARCHITECTURE.md)** - System architecture and data flows
+- **[docs/API_SPECS.md](./docs/API_SPECS.md)** - Complete API documentation
+- **[docs/schema.sql](./docs/schema.sql)** - Database schema
+- **[CLARIFICATIONS.md](../CLARIFICATIONS.md)** - Concept explanations
+
+---
+
 ## 🔒 Security Considerations
 
 ### For Production Deployment
@@ -440,6 +511,46 @@ docker logs simulator -f
 - **Event Ingestion**: < 10ms per event
 - **WebSocket Latency**: < 20ms
 - **Database Queries**: Indexed for < 100ms
+
+---
+
+## 🔄 Maintenance
+
+### Update Dependencies
+
+```bash
+# Backend
+cd source/audit-api
+npm update
+
+# Frontend
+cd source/audit-ui  
+npm update
+
+# Rebuild images
+docker compose -f orchestrate/compose.yml build --no-cache
+```
+
+### Database Migrations
+
+```bash
+# Create migration
+cd source/audit-api
+npx prisma migrate dev --name description_of_change
+
+# Apply in production
+docker exec audit-api npx prisma migrate deploy
+```
+
+### Backup Database
+
+```bash
+# Backup PostgreSQL
+docker exec common-postgres pg_dump -U admin audit_db > backup.sql
+
+# Restore
+docker exec -i common-postgres psql -U admin audit_db < backup.sql
+```
 
 ---
 
@@ -618,6 +729,44 @@ curl -X POST http://localhost:5001/rules/draft \
 - Redis for distributed caching
 - WebSocket with client tracking
 - Async event processing
+
+---
+
+## 🤝 Contributing
+
+### Code Style
+- TypeScript strict mode enabled
+- ES modules with explicit `.js` extensions
+- Fastify plugins for modular architecture
+- Prisma ORM for type-safe database access
+
+### Git Workflow
+```bash
+# Make changes
+git add .
+git commit -m "Description of changes"
+
+# Build and test
+docker compose -f orchestrate/compose.yml up --build
+
+# Verify all services are healthy
+docker compose -f orchestrate/compose.yml ps
+```
+
+---
+
+## 📞 Support
+
+For questions or issues:
+1. Check logs: `docker compose -f orchestrate/compose.yml logs`
+2. Review documentation in `docs/` folder
+3. Verify environment variables in `orchestrate/*/app.env`
+
+---
+
+## 📄 License
+
+This project is for interview/assessment purposes.
 
 ---
 
