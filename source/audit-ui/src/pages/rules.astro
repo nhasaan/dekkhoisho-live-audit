@@ -2,436 +2,275 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Rules Management - Bitsmedia Audit">
-	<div class="rules-page">
-		<div class="header">
-			<h1>Security Rules</h1>
-			<button id="draft-rule-btn" class="btn-primary">Draft New Rule</button>
-		</div>
-		
-		<div class="filters">
-			<select id="status-filter">
-				<option value="">All Status</option>
-				<option value="draft">Draft</option>
-				<option value="active">Active</option>
-				<option value="paused">Paused</option>
-			</select>
-		</div>
-		
-		<div class="rules-grid" id="rules-grid">
-			<div class="loading-state">Loading rules...</div>
+<Layout title="Rules Management - DekkhoIsho Audit">
+	<div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5 dark:bg-gray-800 dark:border-gray-700">
+		<div class="w-full mb-1">
+			<div class="mb-4">
+				<h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">
+					Security Rules
+				</h1>
+			</div>
+			<div class="sm:flex">
+				<div class="items-center hidden mb-3 sm:flex sm:divide-x sm:divide-gray-100 sm:mb-0 dark:divide-gray-700">
+					<form class="lg:pr-3" action="#" method="GET">
+						<label for="status-filter" class="sr-only">Filter by status</label>
+						<select 
+							id="status-filter" 
+							class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+						>
+							<option value="">All Status</option>
+							<option value="draft">Draft</option>
+							<option value="active">Active</option>
+							<option value="paused">Paused</option>
+						</select>
+					</form>
+				</div>
+				<div class="flex items-center ml-auto space-x-2 sm:space-x-3">
+					<button
+						onclick="window.location.href='/rules-form'"
+						type="button"
+						class="inline-flex items-center justify-center w-1/2 px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 sm:w-auto dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800"
+					>
+						<svg class="w-5 h-5 mr-2 -ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+							<path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path>
+						</svg>
+						Add Rule
+					</button>
+				</div>
+			</div>
 		</div>
 	</div>
-	
-	<!-- Draft Rule Modal -->
-	<div id="draft-modal" class="modal">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h2>Draft New Rule</h2>
-				<button class="close-btn" id="close-modal">&times;</button>
+
+	<div class="flex flex-col">
+		<div class="overflow-x-auto">
+			<div class="inline-block min-w-full align-middle">
+				<div class="overflow-hidden shadow">
+					<table class="min-w-full divide-y divide-gray-200 table-fixed dark:divide-gray-600">
+						<thead class="bg-gray-100 dark:bg-gray-700">
+							<tr>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									Rule Name
+								</th>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									Description
+								</th>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									Severity
+								</th>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									Status
+								</th>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									Created
+								</th>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									Actions
+								</th>
+							</tr>
+						</thead>
+						<tbody id="rules-tbody" class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
+							<tr>
+								<td colspan="6" class="p-4 text-center text-gray-500 dark:text-gray-400">
+									Loading rules...
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 			</div>
-			<form id="draft-form">
-				<div class="form-group">
-					<label for="rule-name">Rule Name *</label>
-					<input type="text" id="rule-name" required placeholder="e.g., SQL Injection Detection" />
-				</div>
-				<div class="form-group">
-					<label for="rule-description">Description</label>
-					<textarea id="rule-description" rows="3" placeholder="Describe what this rule detects"></textarea>
-				</div>
-				<div class="form-group">
-					<label for="rule-pattern">Detection Pattern</label>
-					<input type="text" id="rule-pattern" placeholder="e.g., regex or pattern" />
-				</div>
-				<div class="form-group">
-					<label for="rule-severity">Severity *</label>
-					<select id="rule-severity" required>
-						<option value="">Select severity</option>
-						<option value="low">Low</option>
-						<option value="medium">Medium</option>
-						<option value="high">High</option>
-						<option value="critical">Critical</option>
-					</select>
-				</div>
-				<div class="modal-actions">
-					<button type="button" class="btn-secondary" id="cancel-btn">Cancel</button>
-					<button type="submit" class="btn-primary">Create Draft</button>
-				</div>
-			</form>
 		</div>
 	</div>
 </Layout>
 
-<style>
-	.rules-page {
-		max-width: 1400px;
-		margin: 0 auto;
-	}
-	.header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 2rem;
-	}
-	h1 {
-		color: #1a1a2e;
-		font-size: 2.5rem;
-	}
-	.btn-primary {
-		background: #4ecca3;
-		color: #1a1a2e;
-		border: none;
-		padding: 0.75rem 1.5rem;
-		border-radius: 6px;
-		font-size: 0.95rem;
-		font-weight: 600;
-		cursor: pointer;
-	}
-	.btn-primary:hover {
-		background: #45b393;
-	}
-	.filters {
-		margin-bottom: 2rem;
-	}
-	.filters select {
-		padding: 0.75rem;
-		border: 2px solid #e0e0e0;
-		border-radius: 6px;
-		font-size: 0.95rem;
-	}
-	.rules-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-		gap: 1.5rem;
-	}
-	.rule-card {
-		background: white;
-		padding: 1.5rem;
-		border-radius: 8px;
-		box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-		border-left: 4px solid #4ecca3;
-	}
-	.rule-card.draft { border-left-color: #95a5a6; }
-	.rule-card.active { border-left-color: #2ecc71; }
-	.rule-card.paused { border-left-color: #e74c3c; }
-	.rule-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: start;
-		margin-bottom: 1rem;
-	}
-	.rule-title {
-		font-size: 1.1rem;
-		font-weight: 600;
-		color: #1a1a2e;
-		margin-bottom: 0.5rem;
-	}
-	.status-badge {
-		padding: 0.25rem 0.75rem;
-		border-radius: 12px;
-		font-size: 0.75rem;
-		font-weight: 600;
-		text-transform: uppercase;
-	}
-	.status-draft { background: #ecf0f1; color: #7f8c8d; }
-	.status-active { background: #d5f4e6; color: #0a6e5c; }
-	.status-paused { background: #fdecea; color: #c0392b; }
-	.rule-description {
-		color: #666;
-		font-size: 0.9rem;
-		margin-bottom: 1rem;
-		line-height: 1.5;
-	}
-	.rule-meta {
-		display: flex;
-		gap: 1rem;
-		font-size: 0.85rem;
-		color: #999;
-		margin-bottom: 1rem;
-	}
-	.rule-actions {
-		display: flex;
-		gap: 0.5rem;
-	}
-	.rule-actions button {
-		flex: 1;
-		padding: 0.5rem;
-		border: none;
-		border-radius: 4px;
-		font-size: 0.85rem;
-		cursor: pointer;
-		font-weight: 500;
-	}
-	.btn-approve {
-		background: #2ecc71;
-		color: white;
-	}
-	.btn-pause {
-		background: #e74c3c;
-		color: white;
-	}
-	.btn-resume {
-		background: #3498db;
-		color: white;
-	}
-	.btn-secondary {
-		background: #e0e0e0;
-		color: #333;
-	}
-	.loading-state {
-		grid-column: 1 / -1;
-		text-align: center;
-		padding: 3rem;
-		color: #999;
-	}
-	
-	/* Modal */
-	.modal {
-		display: none;
-		position: fixed;
-		z-index: 1000;
-		left: 0;
-		top: 0;
-		width: 100%;
-		height: 100%;
-		background: rgba(0, 0, 0, 0.5);
-		align-items: center;
-		justify-content: center;
-	}
-	.modal.active {
-		display: flex;
-	}
-	.modal-content {
-		background: white;
-		padding: 2rem;
-		border-radius: 12px;
-		width: 90%;
-		max-width: 600px;
-		max-height: 90vh;
-		overflow-y: auto;
-	}
-	.modal-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 1.5rem;
-	}
-	.modal-header h2 {
-		color: #1a1a2e;
-		font-size: 1.5rem;
-	}
-	.close-btn {
-		background: none;
-		border: none;
-		font-size: 2rem;
-		color: #999;
-		cursor: pointer;
-		line-height: 1;
-	}
-	.close-btn:hover {
-		color: #333;
-	}
-	.form-group {
-		margin-bottom: 1.5rem;
-	}
-	.form-group label {
-		display: block;
-		margin-bottom: 0.5rem;
-		color: #333;
-		font-weight: 500;
-	}
-	.form-group input,
-	.form-group textarea,
-	.form-group select {
-		width: 100%;
-		padding: 0.75rem;
-		border: 2px solid #e0e0e0;
-		border-radius: 6px;
-		font-size: 1rem;
-	}
-	.form-group input:focus,
-	.form-group textarea:focus,
-	.form-group select:focus {
-		outline: none;
-		border-color: #4ecca3;
-	}
-	.modal-actions {
-		display: flex;
-		gap: 1rem;
-		justify-content: flex-end;
-		margin-top: 2rem;
-	}
-	.modal-actions button {
-		padding: 0.75rem 1.5rem;
-		border: none;
-		border-radius: 6px;
-		font-size: 0.95rem;
-		font-weight: 500;
-		cursor: pointer;
-	}
-</style>
-
 <script>
 	import { isAuthenticated, getUser, hasRole } from '../utils/auth';
 	import { api } from '../utils/api';
+	import { showToast } from '../utils/toast';
 
 	// Check authentication
 	if (!isAuthenticated()) {
-		window.location.href = '/login';
+		window.location.replace('/login');
+		throw new Error('Not authenticated');
 	}
 
 	// Check if user can access this page
 	const user = getUser();
 	if (!hasRole('analyst')) {
-		alert('You do not have permission to access this page.');
-		window.location.href = '/';
+		showToast({ message: 'You do not have permission to access this page', type: 'error' });
+		window.location.replace('/');
+		throw new Error('Unauthorized');
 	}
 
 	const isAdmin = user?.role === 'admin';
 
 	// Load rules
 	async function loadRules() {
-		const grid = document.getElementById('rules-grid');
+		const tbody = document.getElementById('rules-tbody');
 		const statusFilter = (document.getElementById('status-filter') as HTMLSelectElement).value;
 		
-		if (grid) grid.innerHTML = '<div class="loading-state">Loading rules...</div>';
+		if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500 dark:text-gray-400">Loading rules...</td></tr>';
 		
 		try {
 			const params = new URLSearchParams();
 			if (statusFilter) params.append('status', statusFilter);
 			
 			const response = await api.get(`/rules?${params.toString()}`);
-			// Extract from structured response
 			const rules = response.data.data || [];
 			
-			if (grid) {
+			if (tbody) {
 				if (rules.length === 0) {
-					grid.innerHTML = '<div class="loading-state">No rules found</div>';
+					tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500 dark:text-gray-400">No rules found</td></tr>';
 				} else {
-					grid.innerHTML = rules.map((rule: any) => `
-						<div class="rule-card ${rule.status}">
-							<div class="rule-header">
-								<div>
-									<div class="rule-title">${rule.name}</div>
-									<span class="status-badge status-${rule.status}">${rule.status}</span>
-								</div>
-							</div>
-							${rule.description ? `<div class="rule-description">${rule.description}</div>` : ''}
-							<div class="rule-meta">
-								<span>Severity: ${rule.severity.toUpperCase()}</span>
-								<span>|</span>
-								<span>Created: ${new Date(rule.created_at).toLocaleDateString()}</span>
-							</div>
-							${isAdmin && rule.status !== 'draft' ? `
-								<div class="rule-actions">
-									${rule.status === 'active' ? 
-										`<button class="btn-pause" onclick="pauseRule(${rule.id})">Pause</button>` : 
-										`<button class="btn-resume" onclick="resumeRule(${rule.id})">Resume</button>`
-									}
-								</div>
-							` : ''}
-							${isAdmin && rule.status === 'draft' ? `
-								<div class="rule-actions">
-									<button class="btn-approve" onclick="approveRule(${rule.id})">Approve</button>
-								</div>
-							` : ''}
-						</div>
-					`).join('');
+					tbody.innerHTML = rules.map((rule: any) => {
+						const createdDate = new Date(rule.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+						const description = rule.description || '-';
+						const truncatedDesc = description.length > 60 ? description.substring(0, 60) + '...' : description;
+						
+						// Severity badge colors
+						const severityColors: any = {
+							low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+							medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+							high: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
+							critical: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+						};
+						
+						// Status badge colors
+						const statusColors: any = {
+							draft: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+							active: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+							paused: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+						};
+						
+						// Build actions based on status and role
+						let actions = '';
+						
+						// Edit button for drafts
+						if (rule.status === 'draft') {
+							actions += `
+								<button onclick="editRule(${rule.id})" type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
+									<svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+										<path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"></path>
+										<path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd"></path>
+									</svg>
+									Edit
+								</button>
+							`;
+						}
+						
+						// Admin actions
+						if (isAdmin) {
+							// Approve button for drafts
+							if (rule.status === 'draft') {
+								actions += `
+									<button onclick="approveRule(${rule.id})" type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-green-700 rounded-lg hover:bg-green-800 focus:ring-4 focus:ring-green-300 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+										<svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+											<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+										</svg>
+										Approve
+									</button>
+								`;
+							}
+							
+							// Activate/Deactivate buttons for active/paused rules
+							if (rule.status === 'active') {
+								actions += `
+									<button onclick="pauseRule(${rule.id})" type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-red-700 rounded-lg hover:bg-red-800 focus:ring-4 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+										<svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+											<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd"></path>
+										</svg>
+										Deactivate
+									</button>
+								`;
+							} else if (rule.status === 'paused') {
+								actions += `
+									<button onclick="resumeRule(${rule.id})" type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+										<svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+											<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>
+										</svg>
+										Activate
+									</button>
+								`;
+							}
+						}
+						
+						if (!actions) {
+							actions = '<span class="text-gray-500 text-sm dark:text-gray-400">No actions</span>';
+						}
+						
+						return `
+							<tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+								<td class="p-4 text-base font-semibold text-gray-900 whitespace-nowrap dark:text-white">
+									${rule.name}
+								</td>
+								<td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate dark:text-gray-400" title="${description}">
+									${truncatedDesc}
+								</td>
+								<td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
+									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${severityColors[rule.severity.toLowerCase()]}">
+										${rule.severity.charAt(0).toUpperCase() + rule.severity.slice(1)}
+									</span>
+								</td>
+								<td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
+									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[rule.status]}">
+										${rule.status.charAt(0).toUpperCase() + rule.status.slice(1)}
+									</span>
+								</td>
+								<td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
+									${createdDate}
+								</td>
+								<td class="p-4 space-x-2 whitespace-nowrap">
+									${actions}
+								</td>
+							</tr>
+						`;
+					}).join('');
 				}
 			}
 		} catch (error) {
 			console.error('Failed to load rules:', error);
-			if (grid) grid.innerHTML = '<div class="loading-state">Failed to load rules</div>';
+			showToast({ message: 'Failed to load rules', type: 'error' });
+			if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500 dark:text-gray-400">Failed to load rules</td></tr>';
 		}
 	}
 
-	// Modal handlers
-	const modal = document.getElementById('draft-modal');
-	const draftBtn = document.getElementById('draft-rule-btn');
-	const closeBtn = document.getElementById('close-modal');
-	const cancelBtn = document.getElementById('cancel-btn');
-	const draftForm = document.getElementById('draft-form') as HTMLFormElement;
-
-	draftBtn?.addEventListener('click', () => {
-		modal?.classList.add('active');
-	});
-
-	closeBtn?.addEventListener('click', () => {
-		modal?.classList.remove('active');
-		draftForm?.reset();
-	});
-
-	cancelBtn?.addEventListener('click', () => {
-		modal?.classList.remove('active');
-		draftForm?.reset();
-	});
-
-	// Draft new rule
-	draftForm?.addEventListener('submit', async (e) => {
-		e.preventDefault();
-		
-		const formData = new FormData(draftForm);
-		const data = {
-			name: formData.get('rule-name') as string,
-			description: formData.get('rule-description') as string,
-			pattern: formData.get('rule-pattern') as string,
-			severity: formData.get('rule-severity') as string
-		};
-		
-		try {
-			await api.post('/rules/draft', data);
-			modal?.classList.remove('active');
-			draftForm.reset();
-			loadRules();
-			alert('Rule drafted successfully!');
-		} catch (error: any) {
-			alert('Failed to draft rule: ' + (error.response?.data?.error || error.message));
-		}
-	});
-
 	// Global functions for rule actions
+	(window as any).editRule = (id: number) => {
+		window.location.href = `/rules-form?id=${id}`;
+	};
+
 	(window as any).approveRule = async (id: number) => {
-		if (!confirm('Approve this rule?')) return;
 		try {
 			await api.post(`/rules/${id}/approve`);
+			showToast({ message: 'Rule approved and activated successfully!', type: 'success' });
 			loadRules();
-			alert('Rule approved successfully!');
 		} catch (error: any) {
-			alert('Failed to approve rule: ' + (error.response?.data?.error || error.message));
+			showToast({ message: 'Failed to approve rule: ' + (error.response?.data?.error || error.message), type: 'error' });
 		}
 	};
 
 	(window as any).pauseRule = async (id: number) => {
-		const reason = prompt('Reason for pausing (optional):');
 		try {
-			await api.post(`/rules/${id}/pause`, { reason: reason || undefined });
+			await api.post(`/rules/${id}/pause`);
+			showToast({ message: 'Rule deactivated successfully!', type: 'success' });
 			loadRules();
-			alert('Rule paused successfully!');
 		} catch (error: any) {
-			alert('Failed to pause rule: ' + (error.response?.data?.error || error.message));
+			showToast({ message: 'Failed to deactivate rule: ' + (error.response?.data?.error || error.message), type: 'error' });
 		}
 	};
 
 	(window as any).resumeRule = async (id: number) => {
-		if (!confirm('Resume this rule?')) return;
 		try {
 			await api.post(`/rules/${id}/resume`);
+			showToast({ message: 'Rule activated successfully!', type: 'success' });
 			loadRules();
-			alert('Rule resumed successfully!');
 		} catch (error: any) {
-			alert('Failed to resume rule: ' + (error.response?.data?.error || error.message));
+			showToast({ message: 'Failed to activate rule: ' + (error.response?.data?.error || error.message), type: 'error' });
 		}
 	};
 
 	// Filter change
 	document.getElementById('status-filter')?.addEventListener('change', loadRules);
 
-	// Hide draft button if viewer (shouldn't reach here but as a safeguard)
-	if (!hasRole('analyst')) {
-		if (draftBtn) draftBtn.style.display = 'none';
-	}
-
 	// Initial load
 	loadRules();
 </script>
-

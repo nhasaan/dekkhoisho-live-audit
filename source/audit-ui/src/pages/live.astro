@@ -1,389 +1,309 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import RuleStatsChart from '../components/RuleStatsChart';
 ---
 
-<Layout title="Live Traffic - Bitsmedia Audit">
-	<div class="live-page">
-		<h1>Live Traffic Monitoring</h1>
-		
-		<div class="status-bar">
-			<div class="status-indicator">
-				<span class="status-dot" id="status-dot"></span>
-				<span id="connection-status">Connecting...</span>
-			</div>
-			<div class="stats-inline">
-				<span>Events: <strong id="event-counter">0</strong></span>
-				<span>|</span>
-				<span>Rate: <strong id="event-rate">0/min</strong></span>
+<Layout title="Live Traffic - DekkhoIsho Audit">
+	<div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5 dark:bg-gray-800 dark:border-gray-700">
+		<div class="w-full mb-1">
+			<div class="mb-4">
+				<h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">
+					Live Traffic Monitoring
+				</h1>
 			</div>
 		</div>
-		
-		<div class="chart-card">
-			<h2>Top 5 Security Rules (Last 15 Minutes)</h2>
-			<div id="chart-container"></div>
+	</div>
+
+	<!-- Status Bar -->
+	<div class="p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+		<div class="sm:flex sm:items-center sm:justify-between">
+			<div class="flex items-center space-x-4">
+				<div class="flex items-center">
+					<span id="status-dot" class="flex relative w-3 h-3 mr-3">
+						<span class="absolute inline-flex w-full h-full bg-gray-400 rounded-full opacity-75 animate-ping"></span>
+						<span class="relative inline-flex w-3 h-3 bg-gray-500 rounded-full"></span>
+					</span>
+					<span id="connection-status" class="text-sm font-medium text-gray-900 dark:text-white">Connecting...</span>
+				</div>
+			</div>
+			<div class="flex items-center mt-4 space-x-6 sm:mt-0">
+				<div>
+					<span class="text-xs text-gray-500 dark:text-gray-400">Events</span>
+					<p id="event-counter" class="text-xl font-bold text-gray-900 dark:text-white">0</p>
+				</div>
+				<div>
+					<span class="text-xs text-gray-500 dark:text-gray-400">Rate</span>
+					<p id="event-rate" class="text-xl font-bold text-gray-900 dark:text-white">0/min</p>
+				</div>
+			</div>
+		</div>
 		</div>
 		
-		<div class="events-card">
-			<div class="events-header">
-				<h2>Live Event Stream</h2>
-				<button id="pause-btn" class="btn-secondary">Pause</button>
+	<!-- Chart -->
+	<div class="p-4 bg-white dark:bg-gray-800">
+		<div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm dark:border-gray-700 sm:p-6 dark:bg-gray-800">
+			<div class="flex items-center justify-between mb-4">
+				<div>
+					<h3 class="text-lg font-semibold text-gray-900 dark:text-white">Top 5 Security Rules</h3>
+					<p class="text-sm text-gray-500 dark:text-gray-400">Last 15 minutes</p>
+				</div>
 			</div>
-			<div class="table-container">
-				<table id="events-table">
-					<thead>
-						<tr>
-							<th>Time</th>
-							<th>Source IP</th>
-							<th>Rule</th>
-							<th>Severity</th>
-							<th>Action</th>
-							<th>Latency</th>
-							<th>Country</th>
+			<div id="chart-container">
+				<RuleStatsChart 
+					client:load
+					apiUrl={import.meta.env.PUBLIC_API_URL || 'http://localhost:5001'}
+				/>
+			</div>
+		</div>
+	</div>
+
+	<!-- Live Events Table -->
+	<div class="p-4 bg-white block border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+		<div class="flex items-center justify-between mb-4">
+			<h2 class="text-lg font-semibold text-gray-900 dark:text-white">Live Event Stream</h2>
+			<button id="pause-btn" type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+				<svg id="pause-icon" class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+				</svg>
+				<span id="pause-text">Pause</span>
+			</button>
+		</div>
+	</div>
+
+	<!-- Events Table -->
+	<div class="flex flex-col">
+		<div class="overflow-x-auto">
+			<div class="inline-block min-w-full align-middle">
+				<div class="overflow-hidden shadow">
+					<table class="min-w-full divide-y divide-gray-200 table-fixed dark:divide-gray-600">
+						<thead class="bg-gray-100 dark:bg-gray-700">
+							<tr>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									Time
+								</th>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									Source IP
+								</th>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									Rule
+								</th>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									Severity
+								</th>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									Action
+								</th>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									Latency
+								</th>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									Country
+								</th>
 						</tr>
 					</thead>
-					<tbody id="events-tbody">
+						<tbody id="events-tbody" class="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
 						<tr>
-							<td colspan="7" class="loading">Waiting for events...</td>
+								<td colspan="7" class="p-4 text-center text-gray-500 dark:text-gray-400">
+									Waiting for events...
+								</td>
 						</tr>
 					</tbody>
 				</table>
+			</div>
 			</div>
 		</div>
 	</div>
 </Layout>
 
-<style>
-	.live-page {
-		max-width: 1400px;
-		margin: 0 auto;
-	}
-	h1 {
-		color: #1a1a2e;
-		margin-bottom: 1.5rem;
-		font-size: 2.5rem;
-	}
-	.status-bar {
-		background: white;
-		padding: 1rem 2rem;
-		border-radius: 8px;
-		box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-		margin-bottom: 2rem;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-	.status-indicator {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-	}
-	.status-dot {
-		width: 12px;
-		height: 12px;
-		border-radius: 50%;
-		background: #95a5a6;
-		animation: pulse 2s infinite;
-	}
-	.status-dot.connected {
-		background: #2ecc71;
-	}
-	.status-dot.disconnected {
-		background: #e74c3c;
-		animation: none;
-	}
-	@keyframes pulse {
-		0%, 100% { opacity: 1; }
-		50% { opacity: 0.5; }
-	}
-	.stats-inline {
-		display: flex;
-		gap: 1rem;
-		color: #666;
-	}
-	.stats-inline strong {
-		color: #1a1a2e;
-	}
-	.chart-card {
-		background: white;
-		padding: 2rem;
-		border-radius: 8px;
-		box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-		margin-bottom: 2rem;
-	}
-	.chart-card h2 {
-		color: #1a1a2e;
-		margin-bottom: 1.5rem;
-		font-size: 1.25rem;
-	}
-	#chart-container {
-		min-height: 300px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-	.events-card {
-		background: white;
-		border-radius: 8px;
-		box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-		overflow: hidden;
-	}
-	.events-header {
-		padding: 1.5rem 2rem;
-		border-bottom: 1px solid #e0e0e0;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-	.events-header h2 {
-		color: #1a1a2e;
-		font-size: 1.25rem;
-	}
-	.btn-secondary {
-		padding: 0.5rem 1rem;
-		background: #e0e0e0;
-		border: none;
-		border-radius: 6px;
-		cursor: pointer;
-		font-size: 0.9rem;
-	}
-	.btn-secondary:hover {
-		background: #d0d0d0;
-	}
-	.table-container {
-		overflow-x: auto;
-		max-height: 600px;
-	}
-	table {
-		width: 100%;
-		border-collapse: collapse;
-	}
-	th {
-		background: #f5f5f5;
-		padding: 1rem;
-		text-align: left;
-		font-size: 0.85rem;
-		font-weight: 600;
-		color: #666;
-		text-transform: uppercase;
-		position: sticky;
-		top: 0;
-		z-index: 10;
-	}
-	td {
-		padding: 0.75rem 1rem;
-		border-bottom: 1px solid #f0f0f0;
-		color: #333;
-		font-size: 0.9rem;
-	}
-	td.loading {
-		text-align: center;
-		color: #999;
-		padding: 2rem;
-	}
-	tr.new-event {
-		animation: highlight 1s ease-in-out;
-	}
-	@keyframes highlight {
-		0% { background: #d1f2eb; }
-		100% { background: white; }
-	}
-	.severity-badge {
-		display: inline-block;
-		padding: 0.25rem 0.75rem;
-		border-radius: 12px;
-		font-size: 0.75rem;
-		font-weight: 600;
-	}
-	.severity-low { background: #d5f4e6; color: #0a6e5c; }
-	.severity-medium { background: #fff3cd; color: #856404; }
-	.severity-high { background: #f8d7da; color: #721c24; }
-	.severity-critical { background: #f5c6cb; color: #491217; }
-	.action-allowed { color: #27ae60; }
-	.action-blocked { color: #e74c3c; font-weight: 600; }
-</style>
-
 <script>
-	import { isAuthenticated, getToken } from '../utils/auth';
-	import { createWSClient, type WSEvent } from '../utils/websocket';
+	import { isAuthenticated } from '../utils/auth';
+	import { connectWebSocket } from '../utils/websocket';
 	import { api } from '../utils/api';
-	import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-	import { createElement } from 'react';
-	import { createRoot } from 'react-dom/client';
+	import { showToast } from '../utils/toast';
 
-	// Check authentication
+	// Check authentication immediately
 	if (!isAuthenticated()) {
-		window.location.href = '/login';
+		window.location.replace('/login');
+		throw new Error('Not authenticated'); // Stop execution
 	}
 
-	let ws: WebSocket | null = null;
-	let isPaused = false;
-	const events: any[] = [];
-	const MAX_EVENTS = 100;
 	let eventCount = 0;
-	let eventTimestamps: number[] = [];
-	let chartRoot: any = null;
+	let eventTimes: number[] = [];
+	let isPaused = false;
 
-	// Initialize chart
-	function initChart() {
-		const container = document.getElementById('chart-container');
-		if (container && !chartRoot) {
-			chartRoot = createRoot(container);
-			updateChart([]);
+	const maxEventsDisplay = 100; // Keep last 100 events in table
+
+	// Update connection status
+	function updateConnectionStatus(status: 'connecting' | 'connected' | 'disconnected') {
+		const dot = document.getElementById('status-dot');
+		const text = document.getElementById('connection-status');
+		
+		if (status === 'connected') {
+			if (dot) {
+				dot.innerHTML = `
+					<span class="absolute inline-flex w-full h-full bg-green-400 rounded-full opacity-75 animate-ping"></span>
+					<span class="relative inline-flex w-3 h-3 bg-green-500 rounded-full"></span>
+				`;
+			}
+			if (text) text.textContent = 'Connected';
+			if (text) text.className = 'text-sm font-medium text-green-600 dark:text-green-400';
+		} else if (status === 'disconnected') {
+			if (dot) {
+				dot.innerHTML = `<span class="relative inline-flex w-3 h-3 bg-red-500 rounded-full"></span>`;
+			}
+			if (text) text.textContent = 'Disconnected';
+			if (text) text.className = 'text-sm font-medium text-red-600 dark:text-red-400';
+		} else {
+			if (dot) {
+				dot.innerHTML = `
+					<span class="absolute inline-flex w-full h-full bg-gray-400 rounded-full opacity-75 animate-ping"></span>
+					<span class="relative inline-flex w-3 h-3 bg-gray-500 rounded-full"></span>
+				`;
+			}
+			if (text) text.textContent = 'Connecting...';
+			if (text) text.className = 'text-sm font-medium text-gray-900 dark:text-white';
 		}
 	}
 
-	// Update chart
-	function updateChart(data: any[]) {
-		if (!chartRoot) return;
-		
-		const colors = ['#4ecca3', '#45b393', '#3d9d84', '#358775', '#2d7266'];
-		
-		const ChartComponent = createElement(ResponsiveContainer, { width: '100%', height: 300 },
-			createElement(BarChart, { data },
-				createElement(CartesianGrid, { strokeDasharray: '3 3' }),
-				createElement(XAxis, { dataKey: 'name', angle: -15, textAnchor: 'end', height: 100 }),
-				createElement(YAxis, null),
-				createElement(Tooltip, null),
-				createElement(Bar, { dataKey: 'count', fill: '#4ecca3' },
-					data.map((_: any, index: number) => 
-						createElement(Cell, { key: `cell-${index}`, fill: colors[index % colors.length] })
-					)
-				)
-			)
-		);
-		
-		chartRoot.render(ChartComponent);
-	}
+	// Handle incoming event
+	function handleEvent(event: any) {
+		if (isPaused) return;
 
-	// Load rule stats
-	async function loadRuleStats() {
-		try {
-			const response = await api.get('/events/stats/rules?window=15m');
-			// Extract from structured response
-			const apiData = response.data.data || {};
-			const rules = apiData.rules || [];
-			
-			const chartData = rules.map((rule: any) => ({
-				name: rule.rule_name.length > 25 ? rule.rule_name.substring(0, 25) + '...' : rule.rule_name,
-				count: rule.count
-			}));
-			
-			updateChart(chartData);
-		} catch (error) {
-			console.error('Failed to load rule stats:', error);
-		}
-	}
-
-	// Connect to WebSocket
-	function connectWebSocket() {
-		const token = getToken();
-		if (!token) return;
-		
-		const statusDot = document.getElementById('status-dot');
-		const statusText = document.getElementById('connection-status');
-		
-		try {
-			ws = createWSClient(token);
-			
-			ws.onopen = () => {
-				console.log('WebSocket connected');
-				if (statusDot) statusDot.classList.add('connected');
-				if (statusText) statusText.textContent = 'Connected';
-			};
-			
-			ws.onmessage = (event) => {
-				const message: WSEvent = JSON.parse(event.data);
-				
-				if (message.type === 'event' && !isPaused) {
-					handleNewEvent(message.data);
-				}
-			};
-			
-			ws.onerror = (error) => {
-				console.error('WebSocket error:', error);
-				if (statusDot) statusDot.classList.add('disconnected');
-				if (statusText) statusText.textContent = 'Error';
-			};
-			
-			ws.onclose = () => {
-				console.log('WebSocket disconnected');
-				if (statusDot) {
-					statusDot.classList.remove('connected');
-					statusDot.classList.add('disconnected');
-				}
-				if (statusText) statusText.textContent = 'Disconnected';
-				
-				// Reconnect after 5 seconds
-				setTimeout(connectWebSocket, 5000);
-			};
-		} catch (error) {
-			console.error('Failed to connect WebSocket:', error);
-		}
-	}
-
-	// Handle new event
-	function handleNewEvent(event: any) {
-		events.unshift(event);
-		if (events.length > MAX_EVENTS) events.pop();
-		
 		eventCount++;
-		const counterEl = document.getElementById('event-counter');
-		if (counterEl) counterEl.textContent = eventCount.toString();
+		eventTimes.push(Date.now());
 		
-		// Track for rate calculation
-		eventTimestamps.push(Date.now());
-		eventTimestamps = eventTimestamps.filter(t => Date.now() - t < 60000);
-		const rateEl = document.getElementById('event-rate');
-		if (rateEl) rateEl.textContent = `${eventTimestamps.length}/min`;
+		// Update counters
+		const counter = document.getElementById('event-counter');
+		if (counter) counter.textContent = eventCount.toString();
 		
-		renderEvents();
-	}
+		// Calculate rate (events per minute)
+		const oneMinuteAgo = Date.now() - 60000;
+		eventTimes = eventTimes.filter(t => t > oneMinuteAgo);
+		const rate = document.getElementById('event-rate');
+		if (rate) rate.textContent = `${eventTimes.length}/min`;
 
-	// Render events table
-	function renderEvents() {
+		// Add to table
 		const tbody = document.getElementById('events-tbody');
-		if (!tbody) return;
-		
-		if (events.length === 0) {
-			tbody.innerHTML = '<tr><td colspan="7" class="loading">Waiting for events...</td></tr>';
-			return;
-		}
-		
-		tbody.innerHTML = events.map((event, index) => `
-			<tr class="${index === 0 ? 'new-event' : ''}">
-				<td>${new Date(event.ts).toLocaleTimeString()}</td>
-				<td>${event.source_ip}</td>
-				<td>${event.rule_name}</td>
-				<td>
-					<span class="severity-badge severity-${event.severity}">
-						${event.severity.toUpperCase()}
+		if (tbody) {
+			// Remove waiting message if present
+			if (tbody.children.length === 1 && tbody.children[0].textContent?.includes('Waiting')) {
+				tbody.innerHTML = '';
+			}
+
+			const time = new Date(event.ts || Date.now()).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+			// Severity colors
+			const severityColors: any = {
+				low: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+				medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+				high: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300',
+				critical: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+			};
+
+			// Action colors
+			const actionColors: any = {
+				allowed: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+				blocked: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
+			};
+
+			const row = document.createElement('tr');
+			row.className = 'hover:bg-gray-100 dark:hover:bg-gray-700 animate-fade-in';
+			row.innerHTML = `
+				<td class="p-4 text-sm font-medium text-gray-900 whitespace-nowrap dark:text-white">
+					${time}
+				</td>
+				<td class="p-4 text-sm text-gray-900 whitespace-nowrap dark:text-white">
+					<code class="text-xs font-mono bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">${event.sourceIp || event.source_ip}</code>
+				</td>
+				<td class="max-w-xs p-4 overflow-hidden text-sm text-gray-500 truncate dark:text-gray-400">
+					${event.ruleName || event.rule_name}
+				</td>
+				<td class="p-4 whitespace-nowrap">
+					<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${severityColors[event.severity.toLowerCase()]}">
+						${event.severity}
 					</span>
 				</td>
-				<td class="action-${event.action}">${event.action.toUpperCase()}</td>
-				<td>${event.latency_ms}ms</td>
-				<td>${event.country}</td>
-			</tr>
-		`).join('');
+				<td class="p-4 whitespace-nowrap">
+					<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${actionColors[event.action]}">
+						${event.action}
+					</span>
+				</td>
+				<td class="p-4 text-sm text-gray-900 whitespace-nowrap dark:text-white">
+					${event.latencyMs || event.latency_ms}ms
+				</td>
+				<td class="p-4 text-sm text-gray-900 whitespace-nowrap dark:text-white">
+					${event.country || event.countryCode}
+				</td>
+			`;
+
+			tbody.insertBefore(row, tbody.firstChild);
+
+			// Keep only last N events
+			while (tbody.children.length > maxEventsDisplay) {
+				tbody.removeChild(tbody.lastChild!);
+			}
+		}
 	}
 
-	// Pause/Resume
-	const pauseBtn = document.getElementById('pause-btn');
-	pauseBtn?.addEventListener('click', () => {
-		isPaused = !isPaused;
-		if (pauseBtn) pauseBtn.textContent = isPaused ? 'Resume' : 'Pause';
+	// WebSocket connection
+	const ws = connectWebSocket((event) => {
+		handleEvent(event);
 	});
 
-	// Initialize
-	initChart();
-	connectWebSocket();
-	loadRuleStats();
+	ws.onopen = () => {
+		updateConnectionStatus('connected');
+		showToast({ message: 'Connected to live event stream', type: 'success' });
+	};
+
+	ws.onerror = () => {
+		updateConnectionStatus('disconnected');
+		showToast({ message: 'WebSocket connection error', type: 'error' });
+	};
+
+	ws.onclose = (event) => {
+		updateConnectionStatus('disconnected');
+		if (event.code === 1008 || event.code === 4001) {
+			console.warn('WebSocket authentication failed');
+			showToast({ message: 'WebSocket authentication failed', type: 'error' });
+			return;
+		}
+		showToast({ message: 'Disconnected from live stream. Reconnecting...', type: 'warning' });
+		setTimeout(() => window.location.reload(), 5000);
+	};
+
+	// Pause/Resume button
+	const pauseBtn = document.getElementById('pause-btn');
+	const pauseText = document.getElementById('pause-text');
+	const pauseIcon = document.getElementById('pause-icon');
 	
-	// Refresh stats every 3 seconds
-	setInterval(loadRuleStats, 3000);
-	
+	pauseBtn?.addEventListener('click', () => {
+		isPaused = !isPaused;
+		if (pauseText) pauseText.textContent = isPaused ? 'Resume' : 'Pause';
+		if (pauseIcon && isPaused) {
+			pauseIcon.innerHTML = '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path>';
+		} else if (pauseIcon) {
+			pauseIcon.innerHTML = '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"></path>';
+		}
+	});
+
 	// Cleanup on page unload
 	window.addEventListener('beforeunload', () => {
-		if (ws) ws.close();
+		ws.close();
 	});
 </script>
 
+<style>
+	@keyframes fade-in {
+		from {
+			opacity: 0;
+			transform: translateY(-10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+	.animate-fade-in {
+		animation: fade-in 0.3s ease-out;
+	}
+</style>

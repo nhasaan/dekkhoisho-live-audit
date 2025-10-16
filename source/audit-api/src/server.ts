@@ -195,7 +195,7 @@ async function registerRoutes() {
   // API info endpoint
   server.get('/', async (request, reply) => {
     return {
-      name: 'Bitsmedia Live Audit API',
+      name: 'DekkhoIsho Live Audit API',
       version: '1.0.0',
       description: 'Security event ingestion and audit system with RBAC',
       endpoints: {
@@ -246,7 +246,7 @@ async function gracefulShutdown(signal: string) {
 // Start server
 async function start() {
   try {
-    server.log.info('🚀 Starting Bitsmedia Live Audit API...');
+    server.log.info('🚀 Starting DekkhoIsho Live Audit API...');
 
     // Connect to Prisma
     await prisma.$connect();

@@ -1,4 +1,4 @@
-// Prisma schema for Bitsmedia Live Audit System
+// Prisma schema for DekkhoIsho Live Audit System
 
 generator client {
   provider = "prisma-client-js"

@@ -1,4 +1,4 @@
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -23,7 +23,7 @@ ENV PUBLIC_WS_URL=$PUBLIC_WS_URL
 RUN npm run build
 
 # Production stage
-FROM node:18-alpine
+FROM node:20-alpine
 
 WORKDIR /app
 
@@ -36,5 +36,5 @@ COPY --from=builder /app/dist ./dist
 # Expose port
 EXPOSE 4321
 
-# Serve the static files
-CMD ["serve", "-s", "dist", "-l", "4321"]
+# Serve the static files (without -s flag for multi-page routing)
+CMD ["serve", "dist", "-l", "4321"]

@@ -2,7 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Dashboard - Bitsmedia Audit">
+<Layout title="Dashboard - DekkhoIsho Audit">
 	<div class="dashboard">
 		<h1>Dashboard</h1>
 		
@@ -163,9 +163,10 @@ import Layout from '../layouts/Layout.astro';
 	import { isAuthenticated, getUser, hasRole } from '../utils/auth';
 	import { api } from '../utils/api';
 
-	// Check authentication
+	// Check authentication FIRST - before anything else
 	if (!isAuthenticated()) {
-		window.location.href = '/login';
+		window.location.replace('/login');
+		throw new Error('Not authenticated'); // Stop execution
 	}
 
 	// Display user info
@@ -212,5 +213,6 @@ import Layout from '../layouts/Layout.astro';
 		}
 	}
 
+	// Only load stats if authenticated
 	loadStats();
 </script>

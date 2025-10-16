@@ -1,4 +1,4 @@
-name: bitsmedia
+name: dekkoisho
 
 services:
   # Audit API (Backend)
@@ -64,4 +64,8 @@ services:
 
 networks:
   audit-network:
-    driver: bridge
+    external: true
+    name: common-net
+  docker-commons:
+    external: true
+    name: common-net

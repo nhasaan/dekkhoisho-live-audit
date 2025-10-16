@@ -2,248 +2,139 @@
 import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Audit Logs - Bitsmedia Audit">
-	<div class="audit-page">
-		<h1>Audit Logs</h1>
-		
-		<div class="filters-card">
-			<h2>Filters</h2>
-			<div class="filters-grid">
-				<div class="filter-group">
-					<label for="filter-user">User</label>
-					<input type="text" id="filter-user" placeholder="Username" />
-				</div>
-				<div class="filter-group">
-					<label for="filter-action">Action</label>
-					<select id="filter-action">
-						<option value="">All Actions</option>
-						<option value="LOGIN">LOGIN</option>
-						<option value="LOGOUT">LOGOUT</option>
-						<option value="DRAFT_RULE">DRAFT_RULE</option>
-						<option value="APPROVE_RULE">APPROVE_RULE</option>
-						<option value="PAUSE_RULE">PAUSE_RULE</option>
-						<option value="RESUME_RULE">RESUME_RULE</option>
-					</select>
-				</div>
-				<div class="filter-group">
-					<label for="filter-date-from">Date From</label>
-					<input type="date" id="filter-date-from" />
-				</div>
-				<div class="filter-group">
-					<label for="filter-date-to">Date To</label>
-					<input type="date" id="filter-date-to" />
-				</div>
-			</div>
-			<div class="filter-actions">
-				<button id="apply-filters-btn" class="btn-primary">Apply Filters</button>
-				<button id="clear-filters-btn" class="btn-secondary">Clear</button>
+<Layout title="Audit Logs - DekkhoIsho Audit">
+	<div class="p-4 bg-white block sm:flex items-center justify-between border-b border-gray-200 lg:mt-1.5 dark:bg-gray-800 dark:border-gray-700">
+		<div class="w-full mb-1">
+			<div class="mb-4">
+				<h1 class="text-xl font-semibold text-gray-900 sm:text-2xl dark:text-white">
+					Audit Logs
+				</h1>
 			</div>
 		</div>
-		
-		<div class="table-card">
-			<div class="table-header">
-				<h2>Audit Entries</h2>
-				<span id="total-count" class="count-badge">0 entries</span>
+	</div>
+
+	<!-- Filters -->
+    <div class="p-4 bg-white dark:bg-gray-800">
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+			<div>
+				<label for="filter-user" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">User</label>
+				<input type="text" id="filter-user" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white" placeholder="Username" />
 			</div>
-			
-			<div class="table-container">
-				<table id="audit-table">
-					<thead>
-						<tr>
-							<th>ID</th>
-							<th>User</th>
-							<th>Action</th>
-							<th>Target</th>
-							<th>Timestamp</th>
-							<th>Hash</th>
-						</tr>
-					</thead>
-					<tbody id="audit-tbody">
-						<tr>
-							<td colspan="6" class="loading">Loading...</td>
-						</tr>
-					</tbody>
-				</table>
+			<div>
+				<label for="filter-action" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Action</label>
+				<select id="filter-action" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+					<option value="">All Actions</option>
+					<option value="LOGIN">LOGIN</option>
+					<option value="LOGOUT">LOGOUT</option>
+					<option value="DRAFT_RULE">DRAFT_RULE</option>
+					<option value="APPROVE_RULE">APPROVE_RULE</option>
+					<option value="PAUSE_RULE">PAUSE_RULE</option>
+					<option value="RESUME_RULE">RESUME_RULE</option>
+				</select>
 			</div>
-			
-			<div class="pagination">
-				<button id="prev-btn" class="btn-secondary" disabled>Previous</button>
-				<span id="page-info">Page 1 of 1</span>
-				<button id="next-btn" class="btn-secondary" disabled>Next</button>
+			<div>
+				<label for="filter-date-from" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Date From</label>
+				<input type="date" id="filter-date-from" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
 			</div>
+			<div>
+				<label for="filter-date-to" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Date To</label>
+				<input type="date" id="filter-date-to" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+			</div>
+		</div>
+		<div class="flex items-center space-x-3 mt-4">
+			<button id="apply-filters-btn" type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
+				<svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"></path>
+				</svg>
+				Apply Filters
+			</button>
+			<button id="clear-filters-btn" type="button" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+				<svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+				</svg>
+				Clear
+			</button>
+		</div>
+	</div>
+
+    <!-- Table -->
+	<div class="flex flex-col">
+		<div class="overflow-x-auto">
+			<div class="inline-block min-w-full align-middle">
+				<div class="overflow-hidden shadow">
+                    <div class="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200 dark:bg-gray-700 dark:border-gray-600">
+                        <h2 class="text-base font-semibold text-gray-900 dark:text-white">Audit Entries</h2>
+                        <span id="total-count" class="text-sm font-medium text-gray-600 dark:text-gray-300">0 entries</span>
+                    </div>
+                    <table class="min-w-full divide-y divide-gray-200 table-fixed dark:divide-gray-700">
+						<thead class="bg-gray-100 dark:bg-gray-700">
+							<tr>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									ID
+								</th>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									User
+								</th>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									Action
+								</th>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									Target
+								</th>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									Timestamp
+								</th>
+								<th scope="col" class="p-4 text-xs font-medium text-left text-gray-500 uppercase dark:text-gray-400">
+									Hash
+								</th>
+							</tr>
+						</thead>
+                        <tbody id="audit-tbody" class="bg-transparent divide-y divide-gray-200 dark:divide-gray-700">
+							<tr>
+								<td colspan="6" class="p-4 text-center text-gray-500 dark:text-gray-400">
+									Loading...
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Pagination -->
+	<div class="sticky bottom-0 right-0 items-center w-full p-4 bg-white border-t border-gray-200 sm:flex sm:justify-between dark:bg-gray-800 dark:border-gray-700">
+		<div class="flex items-center mb-4 sm:mb-0">
+			<span class="text-sm font-normal text-gray-500 dark:text-gray-400">
+				Showing <span id="page-info" class="font-semibold text-gray-900 dark:text-white">page 1</span>
+			</span>
+		</div>
+		<div class="flex items-center space-x-3">
+			<button id="prev-btn" type="button" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 sm:w-auto dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+				<svg class="w-5 h-5 mr-1 -ml-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+				</svg>
+				Previous
+			</button>
+			<button id="next-btn" type="button" class="inline-flex items-center justify-center flex-1 px-3 py-2 text-sm font-medium text-center text-white rounded-lg bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 sm:w-auto dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+				Next
+				<svg class="w-5 h-5 ml-1 -mr-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+				</svg>
+			</button>
 		</div>
 	</div>
 </Layout>
 
-<style>
-	.audit-page {
-		max-width: 1400px;
-		margin: 0 auto;
-	}
-	h1 {
-		color: #1a1a2e;
-		margin-bottom: 2rem;
-		font-size: 2.5rem;
-	}
-	.filters-card {
-		background: white;
-		padding: 2rem;
-		border-radius: 8px;
-		box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-		margin-bottom: 2rem;
-	}
-	.filters-card h2 {
-		color: #1a1a2e;
-		margin-bottom: 1.5rem;
-		font-size: 1.25rem;
-	}
-	.filters-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-		gap: 1rem;
-		margin-bottom: 1.5rem;
-	}
-	.filter-group label {
-		display: block;
-		margin-bottom: 0.5rem;
-		color: #666;
-		font-size: 0.9rem;
-		font-weight: 500;
-	}
-	.filter-group input,
-	.filter-group select {
-		width: 100%;
-		padding: 0.75rem;
-		border: 2px solid #e0e0e0;
-		border-radius: 6px;
-		font-size: 0.95rem;
-	}
-	.filter-group input:focus,
-	.filter-group select:focus {
-		outline: none;
-		border-color: #4ecca3;
-	}
-	.filter-actions {
-		display: flex;
-		gap: 1rem;
-	}
-	.btn-primary, .btn-secondary {
-		padding: 0.75rem 1.5rem;
-		border: none;
-		border-radius: 6px;
-		font-size: 0.95rem;
-		font-weight: 500;
-		cursor: pointer;
-		transition: background 0.2s;
-	}
-	.btn-primary {
-		background: #4ecca3;
-		color: #1a1a2e;
-	}
-	.btn-primary:hover {
-		background: #45b393;
-	}
-	.btn-secondary {
-		background: #e0e0e0;
-		color: #333;
-	}
-	.btn-secondary:hover {
-		background: #d0d0d0;
-	}
-	.btn-secondary:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-	.table-card {
-		background: white;
-		border-radius: 8px;
-		box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-		overflow: hidden;
-	}
-	.table-header {
-		padding: 1.5rem 2rem;
-		border-bottom: 1px solid #e0e0e0;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-	.table-header h2 {
-		color: #1a1a2e;
-		font-size: 1.25rem;
-	}
-	.count-badge {
-		background: #4ecca3;
-		color: #1a1a2e;
-		padding: 0.5rem 1rem;
-		border-radius: 20px;
-		font-size: 0.85rem;
-		font-weight: 600;
-	}
-	.table-container {
-		overflow-x: auto;
-	}
-	table {
-		width: 100%;
-		border-collapse: collapse;
-	}
-	th {
-		background: #f5f5f5;
-		padding: 1rem;
-		text-align: left;
-		font-size: 0.85rem;
-		font-weight: 600;
-		color: #666;
-		text-transform: uppercase;
-		letter-spacing: 0.5px;
-	}
-	td {
-		padding: 1rem;
-		border-bottom: 1px solid #f0f0f0;
-		color: #333;
-		font-size: 0.9rem;
-	}
-	td.loading {
-		text-align: center;
-		color: #999;
-	}
-	.hash-cell {
-		font-family: monospace;
-		font-size: 0.8rem;
-		max-width: 150px;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-	.action-badge {
-		display: inline-block;
-		padding: 0.25rem 0.75rem;
-		border-radius: 12px;
-		font-size: 0.75rem;
-		font-weight: 600;
-	}
-	.action-login { background: #d1f2eb; color: #0a6e5c; }
-	.action-logout { background: #fdecea; color: #c0392b; }
-	.action-rule { background: #dfe6f1; color: #1f4788; }
-	.pagination {
-		padding: 1.5rem 2rem;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		border-top: 1px solid #e0e0e0;
-	}
-	#page-info {
-		color: #666;
-		font-size: 0.9rem;
-	}
-</style>
-
 <script>
 	import { isAuthenticated } from '../utils/auth';
 	import { api } from '../utils/api';
+	import { showToast } from '../utils/toast';
 
-	// Check authentication
+	// Check authentication FIRST - before anything else
 	if (!isAuthenticated()) {
-		window.location.href = '/login';
+		window.location.replace('/login');
+		throw new Error('Not authenticated'); // Stop execution
 	}
 
 	let currentCursor: string | null = null;
@@ -251,81 +142,145 @@ import Layout from '../layouts/Layout.astro';
 	let currentPageIndex = 0;
 	const limit = 20;
 
-	async function loadAuditLogs(cursor: string | null = null, isPrevious: boolean = false) {
+	async function loadAuditLogs() {
 		const tbody = document.getElementById('audit-tbody');
-		const totalCountEl = document.getElementById('total-count');
-		const pageInfo = document.getElementById('page-info');
-		const prevBtn = document.getElementById('prev-btn') as HTMLButtonElement;
-		const nextBtn = document.getElementById('next-btn') as HTMLButtonElement;
-		
-		if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="loading">Loading...</td></tr>';
-		
+		if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500 dark:text-gray-400">Loading...</td></tr>';
+
+		// Collect filter values
+		const user = (document.getElementById('filter-user') as HTMLInputElement).value;
+		const action = (document.getElementById('filter-action') as HTMLSelectElement).value;
+		const dateFrom = (document.getElementById('filter-date-from') as HTMLInputElement).value;
+		const dateTo = (document.getElementById('filter-date-to') as HTMLInputElement).value;
+
 		try {
-			// Get filter values
-			const user = (document.getElementById('filter-user') as HTMLInputElement)?.value;
-			const action = (document.getElementById('filter-action') as HTMLSelectElement)?.value;
-			const dateFrom = (document.getElementById('filter-date-from') as HTMLInputElement)?.value;
-			const dateTo = (document.getElementById('filter-date-to') as HTMLInputElement)?.value;
-			
-			// Build query params with cursor pagination
 			const params = new URLSearchParams();
-			if (cursor) params.append('cursor', cursor);
 			params.append('limit', limit.toString());
-			params.append('sortBy', 'timestamp');
+			if (currentCursor) params.append('cursor', currentCursor);
 			if (user) params.append('user', user);
 			if (action) params.append('action', action);
 			if (dateFrom) params.append('dateFrom', new Date(dateFrom).toISOString());
 			if (dateTo) params.append('dateTo', new Date(dateTo).toISOString());
-			
+
 			const response = await api.get(`/audit/logs?${params.toString()}`);
-			const apiData = response.data.data || [];
+			// API returns: { status, message, data: [...logs], meta: { pagination: {...} } }
+			const logs = response.data.data || []; // data is the array of logs
 			const pagination = response.data.meta?.pagination || {};
-			const totalCount = pagination.total_count || 0;
 			
-			// Update cursor
-			if (!isPrevious && pagination.next_cursor) {
-				cursorsHistory[currentPageIndex + 1] = pagination.next_cursor;
+			const totalEl = document.getElementById('total-count');
+			if (totalEl && typeof pagination.total_count === 'number') {
+				totalEl.textContent = `${pagination.total_count} entr${pagination.total_count === 1 ? 'y' : 'ies'}`;
 			}
 			
-			// Update UI
-			if (totalCountEl) totalCountEl.textContent = `${totalCount.toLocaleString()} entries`;
-			if (pageInfo) pageInfo.textContent = `Page ${currentPageIndex + 1}`;
-			
-			// Update buttons
-			if (prevBtn) prevBtn.disabled = currentPageIndex === 0;
-			if (nextBtn) nextBtn.disabled = !pagination.has_more;
-			
-			// Populate table
 			if (tbody) {
-				if (apiData.length === 0) {
-					tbody.innerHTML = '<tr><td colspan="6" class="loading">No audit logs found</td></tr>';
+				if (logs.length === 0) {
+					tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500 dark:text-gray-400">No audit logs found</td></tr>';
 				} else {
-					tbody.innerHTML = apiData.map((log: any) => `
-						<tr>
-							<td>${log.id}</td>
-							<td><strong>${log.username}</strong></td>
-							<td>
-								<span class="action-badge action-${log.action.toLowerCase().includes('login') ? 'login' : log.action.toLowerCase().includes('logout') ? 'logout' : 'rule'}">
-									${log.action}
-								</span>
-							</td>
-							<td>${log.target || '-'}</td>
-							<td>${new Date(log.timestamp).toLocaleString()}</td>
-							<td class="hash-cell" title="${log.hash}">${log.hash.substring(0, 16)}...</td>
-						</tr>
-					`).join('');
+					tbody.innerHTML = logs.map((log: any) => {
+						const timestamp = new Date(log.created_at).toLocaleString('en-US', {
+							year: 'numeric',
+							month: 'short',
+							day: 'numeric',
+							hour: '2-digit',
+							minute: '2-digit'
+						});
+
+						// Action badge colors
+						const actionColors: any = {
+							LOGIN: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+							LOGOUT: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
+							DRAFT_RULE: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+							APPROVE_RULE: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+							PAUSE_RULE: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+							RESUME_RULE: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
+						};
+
+						const actionColor = actionColors[log.action] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+
+						return `
+							<tr class="hover:bg-gray-100 dark:hover:bg-gray-700">
+								<td class="p-4 text-sm font-medium text-gray-900 whitespace-nowrap dark:text-white">
+									#${log.id}
+								</td>
+								<td class="p-4 text-base font-semibold text-gray-900 whitespace-nowrap dark:text-white">
+									${log.username}
+								</td>
+								<td class="p-4 whitespace-nowrap">
+									<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${actionColor}">
+										${log.action}
+									</span>
+								</td>
+								<td class="max-w-sm p-4 overflow-hidden text-base font-normal text-gray-500 truncate dark:text-gray-400">
+									${log.target || '-'}
+								</td>
+								<td class="p-4 text-base font-medium text-gray-900 whitespace-nowrap dark:text-white">
+									${timestamp}
+								</td>
+								<td class="p-4">
+									<code class="text-xs font-mono text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+										${log.hash ? log.hash.substring(0, 12) + '...' : '-'}
+									</code>
+								</td>
+							</tr>
+						`;
+					}).join('');
 				}
 			}
-		} catch (error) {
-			console.error('Failed to load audit logs:', error);
-			if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="loading">Failed to load audit logs</td></tr>';
+
+			// Update pagination
+            const prevBtn = document.getElementById('prev-btn') as HTMLButtonElement;
+            const nextBtn = document.getElementById('next-btn') as HTMLButtonElement;
+            const pageInfo = document.getElementById('page-info');
+
+			if (prevBtn) prevBtn.disabled = currentPageIndex === 0;
+            if (nextBtn) nextBtn.disabled = !pagination.next_cursor;
+			if (pageInfo) pageInfo.textContent = `page ${currentPageIndex + 1}`;
+
+			// Store next cursor for pagination
+            // handled on Next click
+
+        } catch (error: any) {
+            const apiMessage = error?.response?.data?.message || error?.message || 'Unknown error';
+            console.error('Failed to load audit logs:', apiMessage);
+            showToast({ message: `Failed to load audit logs: ${apiMessage}`, type: 'error' });
+			if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500 dark:text-gray-400">Failed to load audit logs</td></tr>';
 		}
 	}
 
-	// Event listeners
+	// Pagination handlers
+	document.getElementById('prev-btn')?.addEventListener('click', () => {
+		if (currentPageIndex > 0) {
+			currentPageIndex--;
+			currentCursor = cursorsHistory[currentPageIndex];
+			loadAuditLogs();
+		}
+	});
+
+		document.getElementById('next-btn')?.addEventListener('click', async () => {
+		try {
+			const params = new URLSearchParams();
+			params.append('limit', limit.toString());
+			if (currentCursor) params.append('cursor', currentCursor);
+
+        const response = await api.get(`/audit/logs?${params.toString()}`);
+        const pagination = response.data.meta?.pagination || {};
+
+        if (pagination.next_cursor) {
+				currentPageIndex++;
+            currentCursor = pagination.next_cursor;
+				cursorsHistory[currentPageIndex] = currentCursor;
+				loadAuditLogs();
+			}
+		} catch (error) {
+			showToast({ message: 'Failed to load next page', type: 'error' });
+		}
+	});
+
+	// Filter handlers
 	document.getElementById('apply-filters-btn')?.addEventListener('click', () => {
-		currentPageIndex = 0;
+		// Reset pagination when applying filters
+		currentCursor = null;
 		cursorsHistory = [null];
+		currentPageIndex = 0;
 		loadAuditLogs();
 	});
 
@@ -334,28 +289,12 @@ import Layout from '../layouts/Layout.astro';
 		(document.getElementById('filter-action') as HTMLSelectElement).value = '';
 		(document.getElementById('filter-date-from') as HTMLInputElement).value = '';
 		(document.getElementById('filter-date-to') as HTMLInputElement).value = '';
-		currentPageIndex = 0;
+		currentCursor = null;
 		cursorsHistory = [null];
+		currentPageIndex = 0;
 		loadAuditLogs();
-	});
-
-	document.getElementById('prev-btn')?.addEventListener('click', () => {
-		if (currentPageIndex > 0) {
-			currentPageIndex--;
-			const cursor = cursorsHistory[currentPageIndex];
-			loadAuditLogs(cursor, true);
-		}
-	});
-
-	document.getElementById('next-btn')?.addEventListener('click', () => {
-		const nextCursor = cursorsHistory[currentPageIndex + 1];
-		if (nextCursor) {
-			currentPageIndex++;
-			loadAuditLogs(nextCursor);
-		}
 	});
 
 	// Initial load
 	loadAuditLogs();
 </script>
-

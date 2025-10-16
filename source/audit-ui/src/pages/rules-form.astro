@@ -1,0 +1,252 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Rule Form - DekkhoIsho Audit">
+	<div class="form-page">
+		<div class="header">
+			<h1 id="page-title">Create New Rule</h1>
+			<button onclick="history.back()" class="btn-secondary">← Back to Rules</button>
+		</div>
+		
+		<div class="form-card">
+			<form id="rule-form">
+				<input type="hidden" id="rule-id" name="rule-id" />
+				
+				<div class="form-group">
+					<label for="rule-name">Rule Name *</label>
+					<input type="text" id="rule-name" name="rule-name" required placeholder="e.g., SQL Injection Detection" />
+				</div>
+				
+				<div class="form-group">
+					<label for="rule-description">Description</label>
+					<textarea id="rule-description" name="rule-description" rows="4" placeholder="Describe what this rule detects"></textarea>
+				</div>
+				
+				<div class="form-group">
+					<label for="rule-pattern">Detection Pattern</label>
+					<input type="text" id="rule-pattern" name="rule-pattern" placeholder="e.g., regex or pattern" />
+				</div>
+				
+				<div class="form-group">
+					<label for="rule-severity">Severity *</label>
+					<select id="rule-severity" name="rule-severity" required>
+						<option value="">Select severity</option>
+						<option value="low">Low</option>
+						<option value="medium">Medium</option>
+						<option value="high">High</option>
+						<option value="critical">Critical</option>
+					</select>
+				</div>
+				
+				<div class="form-group" id="status-group" style="display: none;">
+					<label for="rule-status">Status *</label>
+					<select id="rule-status" name="rule-status">
+						<option value="draft">Draft</option>
+						<option value="active">Active</option>
+					</select>
+					<small style="color: #666; display: block; margin-top: 0.5rem;">
+						Analysts can only create drafts. Admins can publish directly.
+					</small>
+				</div>
+				
+				<div class="form-actions">
+					<button type="button" class="btn-secondary" onclick="history.back()">Cancel</button>
+					<button type="submit" class="btn-primary" id="submit-btn">Create Draft</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</Layout>
+
+<style>
+	.form-page {
+		max-width: 800px;
+		margin: 0 auto;
+	}
+	.header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 2rem;
+	}
+	h1 {
+		color: #1a1a2e;
+		font-size: 2rem;
+	}
+	.btn-primary, .btn-secondary {
+		padding: 0.75rem 1.5rem;
+		border: none;
+		border-radius: 6px;
+		font-size: 0.95rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition: background 0.2s;
+	}
+	.btn-primary {
+		background: #4ecca3;
+		color: #1a1a2e;
+	}
+	.btn-primary:hover {
+		background: #45b393;
+	}
+	.btn-secondary {
+		background: #e0e0e0;
+		color: #333;
+	}
+	.btn-secondary:hover {
+		background: #d0d0d0;
+	}
+	.form-card {
+		background: white;
+		padding: 2.5rem;
+		border-radius: 12px;
+		box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+	}
+	.form-group {
+		margin-bottom: 1.75rem;
+	}
+	.form-group label {
+		display: block;
+		margin-bottom: 0.5rem;
+		color: #333;
+		font-weight: 600;
+		font-size: 0.95rem;
+	}
+	.form-group input,
+	.form-group textarea,
+	.form-group select {
+		width: 100%;
+		padding: 0.875rem;
+		border: 2px solid #e0e0e0;
+		border-radius: 6px;
+		font-size: 1rem;
+		font-family: inherit;
+		transition: border-color 0.2s;
+	}
+	.form-group input:focus,
+	.form-group textarea:focus,
+	.form-group select:focus {
+		outline: none;
+		border-color: #4ecca3;
+	}
+	.form-group textarea {
+		resize: vertical;
+		min-height: 100px;
+	}
+	.form-actions {
+		display: flex;
+		gap: 1rem;
+		justify-content: flex-end;
+		margin-top: 2.5rem;
+		padding-top: 2rem;
+		border-top: 1px solid #e0e0e0;
+	}
+</style>
+
+<script>
+	import { isAuthenticated, getUser, hasRole } from '../utils/auth';
+	import { api } from '../utils/api';
+	import { showToast } from '../utils/toast';
+
+	// Check authentication
+	if (!isAuthenticated()) {
+		window.location.replace('/login');
+		throw new Error('Not authenticated');
+	}
+
+	// Check if user can access this page
+	const user = getUser();
+	if (!hasRole('analyst')) {
+		showToast({ message: 'You do not have permission to access this page', type: 'error' });
+		window.location.replace('/');
+		throw new Error('Unauthorized');
+	}
+
+	const isAdmin = user?.role === 'admin';
+
+	// Show status selector for admins
+	if (isAdmin) {
+		const statusGroup = document.getElementById('status-group');
+		const submitBtn = document.getElementById('submit-btn');
+		const statusSelect = document.getElementById('rule-status') as HTMLSelectElement;
+		
+		if (statusGroup) statusGroup.style.display = 'block';
+		
+		// Update button text based on selected status
+		statusSelect?.addEventListener('change', () => {
+			if (submitBtn) {
+				submitBtn.textContent = statusSelect.value === 'active' 
+					? 'Create & Publish' 
+					: 'Create Draft';
+			}
+		});
+	}
+
+	// Check if editing (rule ID in URL params)
+	const urlParams = new URLSearchParams(window.location.search);
+	const ruleId = urlParams.get('id');
+	const isEditing = !!ruleId;
+
+	// Load rule data if editing
+	if (isEditing) {
+		document.getElementById('page-title')!.textContent = 'Edit Rule';
+		document.getElementById('submit-btn')!.textContent = 'Update Rule';
+		document.getElementById('rule-id')!.setAttribute('value', ruleId);
+		
+		// Load rule data
+		api.get(`/rules/${ruleId}`).then((response) => {
+			const rule = response.data.data;
+			(document.getElementById('rule-name') as HTMLInputElement).value = rule.name;
+			(document.getElementById('rule-description') as HTMLTextAreaElement).value = rule.description || '';
+			(document.getElementById('rule-pattern') as HTMLInputElement).value = rule.pattern || '';
+			(document.getElementById('rule-severity') as HTMLSelectElement).value = rule.severity;
+		}).catch((error) => {
+			showToast({ message: 'Failed to load rule: ' + (error.response?.data?.error || error.message), type: 'error' });
+			window.location.href = '/rules';
+		});
+	}
+
+	// Handle form submission
+	const ruleForm = document.getElementById('rule-form') as HTMLFormElement;
+	ruleForm?.addEventListener('submit', async (e) => {
+		e.preventDefault();
+		
+		const formData = new FormData(ruleForm);
+		const status = formData.get('rule-status') as string || 'draft';
+		const data = {
+			name: formData.get('rule-name') as string,
+			description: formData.get('rule-description') as string,
+			pattern: formData.get('rule-pattern') as string,
+			severity: formData.get('rule-severity') as string
+		};
+		
+		try {
+			if (isEditing) {
+				// Update existing rule
+				await api.put(`/rules/${ruleId}`, data);
+				showToast({ message: 'Rule updated successfully!', type: 'success' });
+			} else {
+				// Create new rule
+				if (isAdmin && status === 'active') {
+					// Admin creating and publishing directly
+					const draftResponse = await api.post('/rules/draft', data);
+					const newRuleId = draftResponse.data.data.id;
+					await api.post(`/rules/${newRuleId}/approve`);
+					showToast({ message: 'Rule created and published successfully!', type: 'success' });
+				} else {
+					// Create as draft
+					await api.post('/rules/draft', data);
+					showToast({ message: 'Rule drafted successfully!', type: 'success' });
+				}
+			}
+			
+			setTimeout(() => {
+				window.location.href = '/rules';
+			}, 1500);
+		} catch (error: any) {
+			showToast({ message: 'Failed to save rule: ' + (error.response?.data?.error || error.message), type: 'error' });
+		}
+	});
+</script>
+

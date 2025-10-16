@@ -39,10 +39,16 @@ api.interceptors.response.use(
       }
     }
 
-    // Handle 401 - redirect to login
+    // Handle 401 - redirect to login (only once)
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      localStorage.clear();
-      window.location.href = '/login';
+      // Prevent multiple redirects by checking if we're already redirecting
+      if (!window.location.pathname.includes('/login')) {
+        console.warn('Authentication failed. Redirecting to login...');
+        localStorage.clear();
+        
+        // Use replace instead of href to prevent back button issues
+        window.location.replace('/login');
+      }
     }
 
     return Promise.reject(error);
